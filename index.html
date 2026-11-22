@@ -1,8 +1,7 @@
 <!doctype html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#123b70"><meta name="description" content="Private offline income, expense, customer payment and work manager">
+<meta name="theme-color" content="#123b70"><meta name="description" content="Private offline income, expense, customer payment and job manager">
 <link rel="manifest" href="manifest.webmanifest"><title>Income & Expense Manager</title>
 <style>
 :root{color-scheme:light;--bg:#f3f6fb;--card:#fff;--ink:#182638;--muted:#65758a;--blue:#174a86;--line:#dce4ee;--green:#16845b;--red:#bd3e48}
@@ -17,60 +16,61 @@ h2{font-size:18px;margin:0 0 12px}.grid{display:grid;grid-template-columns:repea
 input,select,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:inherit;min-width:0}textarea{min-height:72px;resize:vertical}
 button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.btn{border:0;border-radius:9px;padding:10px 14px;background:var(--blue);color:white;font-weight:650}.btn.secondary{background:var(--bg);color:var(--ink);border:1px solid var(--line)}.btn.danger{background:var(--red)}.btn.small{padding:7px 10px;font-size:12px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:var(--bg);border-radius:10px;padding:12px}.stat small{display:block;color:var(--muted)}.stat strong{display:block;font-size:19px;margin-top:4px;overflow-wrap:anywhere}
-.list{display:grid;gap:8px}.item{border:1px solid var(--line);border-radius:10px;padding:11px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.item strong{display:block}.meta{color:var(--muted);font-size:12px;margin-top:3px}.empty{color:var(--muted);text-align:center;padding:18px}.pill{display:inline-block;padding:3px 8px;border-radius:20px;background:var(--bg);font-size:11px;font-weight:700}.good{color:var(--green)}.bad{color:var(--red)}
-.toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.toolbar input{max-width:240px}.note{font-size:12px;color:var(--muted);line-height:1.5}
+.list{display:grid;gap:8px}.item{border:1px solid var(--line);border-radius:10px;padding:11px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.item strong{display:block}.meta{color:var(--muted);font-size:12px;margin-top:3px}.empty{color:var(--muted);text-align:center;padding:18px}.good{color:var(--green)}.bad{color:var(--red)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.note{font-size:12px;color:var(--muted);line-height:1.5}
 @media(max-width:560px){.grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.tabs{top:91px}.item{flex-direction:column}.item .actions{margin-top:4px}}
 </style></head><body>
 <header><div class="headrow"><div><h1>Income & Expense Manager</h1><p>Personal business records · BDT ৳ · Offline-ready</p></div><button class="btn secondary" id="themeBtn" aria-label="Toggle dark mode">☾</button></div></header>
 <main><nav class="tabs" aria-label="Main sections">
-<button class="active" data-tab="home">Overview</button><button data-tab="customers">Customer Payments</button><button data-tab="money">Income & Expense</button><button data-tab="work">Work Management</button><button data-tab="reminders">Reminders</button><button data-tab="backup">Backup</button>
+<button class="active" data-tab="home">Overview</button><button data-tab="customers">Customers</button><button data-tab="money">Income & Expense</button><button data-tab="work">Job Details</button><button data-tab="reminders">Reminders</button><button data-tab="backup">Backup</button>
 </nav>
 <section id="home" class="panel active">
-<div class="card"><h2>Financial overview</h2><div class="stats"><div class="stat"><small>Total income</small><strong id="totalIncome">৳0</strong></div><div class="stat"><small>Total expense</small><strong id="totalExpense">৳0</strong></div><div class="stat"><small>Balance</small><strong id="balance">৳0</strong></div></div></div>
-<div class="card"><h2>Work overview</h2><div class="stats"><div class="stat"><small>Pending</small><strong id="pendingCount">0</strong></div><div class="stat"><small>Due / overdue</small><strong id="dueCount">0</strong></div><div class="stat"><small>Finished</small><strong id="finishedCount">0</strong></div></div></div>
+<div class="card"><h2>Work overview</h2><div class="stats"><div class="stat"><small>Pending</small><strong id="pendingCount">0</strong></div><div class="stat"><small>Due / overdue jobs</small><strong id="dueCount">0</strong></div><div class="stat"><small>Finished</small><strong id="finishedCount">0</strong></div></div></div>
+<div class="card"><h2>Financial overview</h2><div class="stats"><div class="stat"><small>Total income</small><strong id="totalIncome">৳0</strong></div><div class="stat"><small>Total expense</small><strong id="totalExpense">৳0</strong></div><div class="stat"><small>Balance</small><strong id="balance">৳0</strong></div><div class="stat"><small>Manual Due Amount</small><strong id="manualDue">৳0</strong></div></div></div>
 <div class="card"><h2>Weekly & monthly totals</h2><div id="periodSummary" class="note"></div></div>
 <div class="card"><h2>Upcoming reminders</h2><div id="homeReminders" class="list"></div></div>
 </section>
 <section id="customers" class="panel">
-<div class="card"><h2>Customer payment record</h2><div class="field"><label>Search customers</label><input id="customerSearch" placeholder="Search name or mobile number"></div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
-<form id="customerForm"><input type="hidden" id="customerEdit">
+<div class="card"><h2>Customer Details</h2><div class="field"><label for="customerSearch">Customer Mobile (ID)</label><input id="customerSearch" inputmode="numeric" placeholder="Search by customer mobile ID"></div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+<form id="customerForm" novalidate><input type="hidden" id="customerEdit">
 <div class="grid">
-<div class="field"><label>Customer mobile number (Customer ID)</label><input id="cMobile" inputmode="tel" required placeholder="01XXXXXXXXX"></div>
-<div class="field"><label>Customer name</label><input id="cName" required></div>
-<div class="field"><label>Contact number</label><input id="cContact" inputmode="tel"></div>
+<div class="field"><label>Join Date</label><input id="cJoin" type="date" required></div>
+<div class="field"><label>Customer Mobile (ID)</label><input id="cMobile" inputmode="numeric" autocomplete="tel" required maxlength="12" placeholder="01710-020101"></div>
+<div class="field full"><label>Customer Name</label><input id="cName" required></div>
+<div class="field"><label>NID No.</label><input id="cNid" inputmode="numeric"></div>
+<div class="field"><label>Password</label><input id="cPassword" type="text" autocomplete="off"></div>
 <div class="field"><label>Contact amount (৳)</label><input id="cAmount" type="number" min="0" step=".01" value="0"></div>
 <div class="field"><label>1st pay amount (৳)</label><input id="cPay1" type="number" min="0" step=".01" value="0"></div>
 <div class="field"><label>2nd pay amount (৳)</label><input id="cPay2" type="number" min="0" step=".01" value="0"></div>
 <div class="field"><label>3rd pay amount (৳)</label><input id="cPay3" type="number" min="0" step=".01" value="0"></div>
-<div class="field"><label>Net payment (৳)</label><input id="cNet" readonly value="0"></div>
-<div class="field"><label>Taken date</label><input id="cTaken" type="date"></div><div class="field"><label>Delivery date</label><input id="cDelivery" type="date"></div>
-</div><div class="actions"><button class="btn" type="submit">Save customer</button><button class="btn secondary" type="button" id="customerClear">Clear</button></div></form></div>
-<div class="card"><h2>Saved customers</h2><div id="customerList" class="list"></div></div>
+<div class="field"><label>Taken Date</label><input id="cTaken" type="date"></div>
+<div class="field"><label>Deadlines</label><input id="cDeadline" type="date"></div>
+<div class="field full"><label>Contact Details</label><textarea id="cContactDetails" placeholder="Address, phone, or other contact details"></textarea></div>
+<div class="field full"><label>Net Payment (৳)</label><input id="cNet" readonly value="0.00"></div>
+</div><div class="actions"><button class="btn" type="submit">Save</button><button class="btn secondary" type="button" id="customerClear">Clear</button></div></form></div>
+<div class="card"><h2>Saved Customers</h2><div id="customerList" class="list"></div></div>
 </section>
 <section id="money" class="panel">
 <div class="card"><h2>Add income or expense</h2><form id="moneyForm"><input type="hidden" id="moneyEdit"><div class="grid">
-<div class="field"><label>Type</label><select id="mType"><option>Income</option><option>Expense</option></select></div>
-<div class="field"><label>Category</label><input id="mCategory" required placeholder="e.g. Sales, Office"></div>
-<div class="field"><label>Amount (৳)</label><input id="mAmount" type="number" min=".01" step=".01" required></div>
-<div class="field"><label>Date</label><input id="mDate" type="date" required></div>
+<div class="field"><label>Type</label><select id="mType"><option>Income</option><option>Expense</option></select></div><div class="field"><label>Category</label><input id="mCategory" required placeholder="e.g. Sales, Office"></div>
+<div class="field"><label>Amount (৳)</label><input id="mAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Date</label><input id="mDate" type="date" required></div>
 <div class="field full"><label>Description</label><textarea id="mDescription" placeholder="Optional details"></textarea></div>
 </div><div class="actions"><button class="btn" type="submit">Save record</button><button class="btn secondary" type="button" id="moneyClear">Clear</button></div></form></div>
 <div class="card"><div class="toolbar"><h2>Transactions</h2><select id="moneyFilter" style="max-width:130px"><option value="All">All</option><option>Income</option><option>Expense</option></select></div><div id="moneyList" class="list"></div></div>
 </section>
 <section id="work" class="panel">
-<div class="card"><h2>Work record</h2><form id="workForm"><input type="hidden" id="workEdit"><div class="grid">
-<div class="field"><label>Work ID (automatic)</label><input id="wId" readonly placeholder="Auto generated"></div>
-<div class="field"><label>Customer name</label><input id="wCustomer" required></div>
-<div class="field"><label>Contact number</label><input id="wContact" inputmode="tel"></div>
+<div class="card"><h2>Job Record</h2><form id="workForm"><input type="hidden" id="workEdit"><div class="grid">
+<div class="field"><label>Job ID (Customer Mobile)</label><select id="wId" required><option value="">Select Customer Mobile (ID)</option></select></div>
 <div class="field"><label>Status</label><select id="wStatus"><option>Pending</option><option>Finished</option><option>Returned</option></select></div>
-<div class="field full"><label>Work description</label><textarea id="wDescription" required></textarea></div>
-<div class="field"><label>Received date</label><input id="wReceived" type="date" required></div>
-<div class="field"><label>Deadline date</label><input id="wDeadline" type="date" required></div>
-<div class="field"><label>Completion date</label><input id="wCompleted" type="date"></div>
-</div><div class="actions"><button class="btn" type="submit">Save work</button><button class="btn secondary" type="button" id="workClear">Clear</button></div></form></div>
-<div class="card"><h2>Work list</h2><div id="workList" class="list"></div></div>
+<div class="field full"><label>Customer Name</label><input id="wCustomer" readonly required></div>
+<div class="field full"><label>Job Description</label><textarea id="wDescription" required></textarea></div>
+<div class="field"><label>Receive Date</label><input id="wReceived" type="date" required></div>
+<div class="field"><label>Deadline Date</label><input id="wDeadline" type="date" required></div>
+<div class="field"><label>Handover Date</label><input id="wHandover" type="date"></div>
+</div><div class="actions"><button class="btn" type="submit">Save Job</button><button class="btn secondary" type="button" id="workClear">Clear</button></div></form></div>
+<div class="card"><h2>Job List</h2><div id="workList" class="list"></div></div>
 </section>
-<section id="reminders" class="panel"><div class="card"><h2>Work reminders</h2><p class="note">Reminders are shown in this app: 7 days before a deadline, on the deadline, and every day after the deadline until the work is marked Finished or Returned. Keep this app installed/open it regularly to review reminders. Browser notifications are requested only if you enable them.</p><div class="actions"><button class="btn" id="notifyBtn">Enable browser notifications</button></div><div id="reminderList" class="list"></div></div></section>
+<section id="reminders" class="panel"><div class="card"><h2>Job reminders</h2><p class="note">Reminders are shown in this app: 7 days before a deadline, on the deadline, and every day after the deadline until the job is marked Finished or Returned. Open the app regularly to review reminders.</p><div class="actions"><button class="btn" id="notifyBtn">Enable browser notifications</button></div><div id="reminderList" class="list"></div></div></section>
 <section id="backup" class="panel"><div class="card"><h2>Backup & restore</h2><p class="note">Your records are stored locally in this browser on this device. Export a backup regularly. Clearing browser data or changing device/browser can remove local records.</p><div class="actions"><button class="btn" id="exportBtn">Download backup</button><label class="btn secondary" for="importFile">Restore backup</label><input id="importFile" type="file" accept="application/json" hidden></div><div class="actions"><button class="btn danger" id="clearAll">Delete all local records</button></div></div></section>
 </main>
 <script src="app.js"></script><script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>
