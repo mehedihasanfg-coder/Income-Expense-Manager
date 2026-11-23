@@ -76,8 +76,11 @@ button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12
 </section>
 <section id="money" class="panel">
 <div class="card"><h2>Add income or expense</h2><form id="moneyForm"><input type="hidden" id="moneyEdit"><div class="grid">
-<div class="field"><label>Type</label><select id="mType"><option>Income</option><option>Expense</option></select></div><div class="field"><label>Category</label><input id="mCategory" required placeholder="e.g. Sales, Office"></div>
-<div class="field"><label>Amount (৳)</label><input id="mAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Date</label><input id="mDate" type="date" required></div>
+<div class="field"><label>Type</label><select id="mType"><option>Income</option><option>Expense</option></select></div><div class="field"><label>Category</label><select id="mCategory" required><option value="">Select</option><option>Mutation</option><option>M.P. Case</option><option>150 Dhara Case</option><option>S.F. Files</option><option>Khatian</option><option>Dhokila/ ldtax</option><option>Journalist Pay</option><option>Loan</option><option>Office</option><option>Others</option></select></div>
+<div class="field"><label>Amount (৳)</label><input id="mAmount" type="number" min=".01" step=".01" required></div>
+<div class="field full" id="mCustomerFields" hidden><div class="grid"><div class="field"><label>Cust. Mobile</label><input id="mCustomerMobile" inputmode="numeric" maxlength="12" placeholder="01710-020101"></div><div class="field"><label>Person Name</label><input id="mPersonName" placeholder="Enter person name"></div></div></div>
+<div class="field full" id="mCaseFields" hidden><div class="grid"><div class="field"><label>Case No.</label><input id="mCaseNo" placeholder="Enter case number"></div><div class="field"><label>Investigation Date</label><input id="mInvestigationDate" type="date"></div></div></div>
+<div class="field"><label>Date</label><input id="mDate" type="date" required></div>
 <div class="field full"><label>Description</label><textarea id="mDescription" placeholder="Optional details"></textarea></div>
 </div><div class="actions"><button class="btn" type="submit">Save record</button><button class="btn secondary" type="button" id="moneyClear">Clear</button></div></form><div class="actions"><button class="btn secondary" type="button" id="moneyCsvBtn">Download Income &amp; Expense.csv</button></div></div>
 <div class="card"><div class="toolbar"><h2>Transactions</h2><select id="moneyFilter" style="max-width:130px"><option value="All">All</option><option>Income</option><option>Expense</option></select></div><div id="moneyList" class="list"></div></div>
