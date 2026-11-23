@@ -147,7 +147,6 @@ function showPage(tab){
  const index=pageOrder.indexOf(tab);if(index<0)return;
  document.querySelectorAll('.menu-link').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
  document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===tab));
- $('pagePosition').textContent=pageNames[index]+' · '+(index+1)+' of '+pageOrder.length;
  $('previousPage').disabled=index===0;$('nextPage').disabled=index===pageOrder.length-1;
  closeMenu();
 }
