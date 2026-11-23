@@ -101,7 +101,7 @@ document.addEventListener('click',e=>{
 
 function downloadCsv(filename,headers,rows){
  const cell=v=>{let s=String(v??'');if(/^[=+@\\-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
- const content='\\uFEFF'+[headers,...rows].map(row=>row.map(cell).join(',')).join('\\r\
+ const content='\uFEFF'+[headers,...rows].map(row=>row.map(cell).join(',')).join('\r\n');
 ');
  const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
