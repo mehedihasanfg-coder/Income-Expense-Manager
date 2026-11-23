@@ -141,8 +141,21 @@ $('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
 function closeMenu(){ $('sideMenu').classList.remove('open');$('menuOverlay').classList.remove('open');$('sideMenu').setAttribute('aria-hidden','true');$('menuOpen').setAttribute('aria-expanded','false') }
 function openMenu(){ $('sideMenu').classList.add('open');$('menuOverlay').classList.add('open');$('sideMenu').setAttribute('aria-hidden','false');$('menuOpen').setAttribute('aria-expanded','true') }
 $('menuOpen').onclick=openMenu;$('menuClose').onclick=closeMenu;$('menuOverlay').onclick=closeMenu;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.menu-link').forEach(x=>x.classList.toggle('active',x.dataset.tab===b.dataset.tab));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));closeMenu()});
-$('openMoney').onclick=()=>{$('money').classList.add('active');document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id==='money'));closeMenu()};
+const pageOrder=['home','customers','work','money','reminders','backup'];
+const pageNames=['Dashboard','Customer','Job Details','Income & Expense','Reminders','Backup'];
+function showPage(tab){
+ const index=pageOrder.indexOf(tab);if(index<0)return;
+ document.querySelectorAll('.menu-link').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
+ document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===tab));
+ $('pagePosition').textContent=pageNames[index]+' · '+(index+1)+' of '+pageOrder.length;
+ $('previousPage').disabled=index===0;$('nextPage').disabled=index===pageOrder.length-1;
+ closeMenu();
+}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>showPage(b.dataset.tab));
+$('previousPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.contains('active'));if(i>0)showPage(pageOrder[i-1])};
+$('nextPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.contains('active'));if(i>=0&&i<pageOrder.length-1)showPage(pageOrder[i+1])};
+$('openMoney').onclick=()=>showPage('money');
+showPage('home');
 $('customerSearch').oninput=render;$('customerSearchBtn').onclick=render;$('customerSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();render()}};$('moneyFilter').onchange=render;
 $('themeBtn').onclick=()=>{document.documentElement.classList.toggle('dark');localStorage.setItem('iem-dark',document.documentElement.classList.contains('dark')?'1':'0')};if(localStorage.getItem('iem-dark')==='1')document.documentElement.classList.add('dark');
 $('exportBtn').onclick=()=>{const a=document.createElement('a'),blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download='income-expense-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href)};
