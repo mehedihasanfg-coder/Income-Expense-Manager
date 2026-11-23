@@ -48,7 +48,7 @@ function render(){
  const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q),cs=db.customers.filter(c=>!q||c.name.toLowerCase().includes(q)||digits(c.mobile).includes(qd));
  $('customerList').innerHTML=cs.length?cs.map(c=>item(esc(c.name)+' · '+esc(c.mobile),'Join '+esc(c.joinDate||'—')+' · Contact '+money(c.amount)+' · Net due '+money(c.net)+' · Deadline '+esc(c.deadline||'—'),act('cedit',digits(c.mobile),'Edit')+act('cdel',digits(c.mobile),'Delete','danger'))).join(''):'<div class="empty">No customer records yet.</div>';
  const mf=$('moneyFilter').value,ms=db.money.filter(x=>mf==='All'||x.type===mf).slice().reverse();
- $('moneyList').innerHTML=ms.length?ms.map(x=>item('<span class="'+(x.type==='Income'?'good':'bad')+'">'+esc(x.type)+'</span> · '+money(x.amount),esc(x.category)+' · '+esc(x.date)+' · '+esc(x.description),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))).join(''):'<div class="empty">No transactions yet.</div>';
+ $('moneyList').innerHTML=ms.length?ms.map(x=>{const extra=x.customerMobile?' · '+esc(x.customerMobile)+' · '+esc(x.personName||''):x.caseNo?' · Case '+esc(x.caseNo)+' · Investigation '+esc(x.investigationDate||''):'';return item('<span class="'+(x.type==='Income'?'good':'bad')+'">'+esc(x.type)+'</span> · '+money(x.amount),esc(x.category)+extra+' · '+esc(x.date)+' · '+esc(x.description),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))}).join(''):'<div class="empty">No transactions yet.</div>';
  $('workList').innerHTML=db.works.slice().reverse().map(w=>item(esc(formatMobile(w.id))+' · '+esc(w.customer),'Job: '+esc(w.description)+' · Deadline '+esc(w.deadline)+' · Handover '+esc(w.handover||'—')+' · <b>'+esc(status(w))+'</b>',act('wedit',w.id,'Edit')+act('wdel',w.id,'Delete','danger'))).join('')||'<div class="empty">No job records yet.</div>';
  $('reminderList').innerHTML=rem.length?rem.map(r=>item(esc(r.w.customer)+' · '+esc(formatMobile(r.w.id)),esc(r.msg)+' · Deadline '+esc(r.date),act('wedit',r.w.id,'Open job'))).join(''):'<div class="empty">No upcoming or overdue reminders.</div>';
  refreshJobOptions($('wId').value);
@@ -72,8 +72,29 @@ $('customerForm').onsubmit=e=>{
  clearForm($('customerForm'),'customerEdit');$('cJoin').value=today();$('cNet').value='0.00';save();
 };
 $('customerClear').onclick=()=>{clearForm($('customerForm'),'customerEdit');$('cJoin').value=today();$('cNet').value='0.00';$('customerSearch').value='';render()};
-$('moneyForm').onsubmit=e=>{e.preventDefault();const x={id:$('moneyEdit').value||uid('TX'),type:$('mType').value,category:$('mCategory').value,amount:num($('mAmount').value),date:$('mDate').value,description:$('mDescription').value};const i=db.money.findIndex(y=>y.id===x.id);if(i<0)db.money.push(x);else db.money[i]=x;clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today();save()};
-$('moneyClear').onclick=()=>{clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today()};
+const customerCategories=['Mutation','Khatian','Dhokila/ ldtax'];
+const caseCategories=['M.P. Case','150 Dhara Case','S.F. Files'];
+function updateMoneyCategoryFields(){
+ const cat=$('mCategory').value,showCustomer=customerCategories.includes(cat),showCase=caseCategories.includes(cat);
+ $('mCustomerFields').hidden=!showCustomer;$('mCaseFields').hidden=!showCase;
+ $('mCustomerMobile').required=showCustomer;$('mPersonName').required=showCustomer;
+ $('mCaseNo').required=showCase;$('mInvestigationDate').required=showCase;
+}
+$('mCategory').onchange=updateMoneyCategoryFields;
+$('mCustomerMobile').addEventListener('input',e=>{e.target.value=formatMobile(e.target.value)});
+$('moneyForm').onsubmit=e=>{
+ e.preventDefault();
+ const cat=$('mCategory').value;
+ if(!cat){alert('Please select a Category.');$('mCategory').focus();return}
+ const customerMode=customerCategories.includes(cat),caseMode=caseCategories.includes(cat);
+ const mobile=formatMobile($('mCustomerMobile').value);
+ if(customerMode&&(!validMobile(mobile)||!$('mPersonName').value.trim())){alert('Enter a valid Customer Mobile and Person Name.');return}
+ if(caseMode&&(!$('mCaseNo').value.trim()||!$('mInvestigationDate').value)){alert('Enter Case No. and Investigation Date.');return}
+ const x={id:$('moneyEdit').value||uid('TX'),type:$('mType').value,category:cat,amount:num($('mAmount').value),customerMobile:customerMode?mobile:'',personName:customerMode?$('mPersonName').value.trim():'',caseNo:caseMode?$('mCaseNo').value.trim():'',investigationDate:caseMode?$('mInvestigationDate').value:'',date:$('mDate').value,description:$('mDescription').value};
+ const i=db.money.findIndex(y=>y.id===x.id);if(i<0)db.money.push(x);else db.money[i]=x;
+ clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today();updateMoneyCategoryFields();save()
+};
+$('moneyClear').onclick=()=>{clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today();updateMoneyCategoryFields()};
 $('wId').onchange=()=>{$('wCustomer').value=customerName($('wId').value)};
 $('workForm').onsubmit=e=>{
  e.preventDefault();const id=digits($('wId').value),customer=customerName(id);
@@ -94,7 +115,7 @@ document.addEventListener('click',e=>{
   [['cJoin','joinDate'],['cMobile','mobile'],['cName','name'],['cNid','nid'],['cPassword','password'],['cAmount','amount'],['cPay1','p1'],['cPay2','p2'],['cPay3','p3'],['cTaken','taken'],['cDeadline','deadline'],['cContactDetails','contactDetails']].forEach(([a,k])=>$(a).value=c[k]??'');$('cNet').value=Number(c.net||0).toFixed(2);
   document.querySelector('[data-tab="customers"]').click();
  }
- if(action==='medit'){const x=db.money.find(x=>x.id===id);if(!x)return;$('moneyEdit').value=id;[['mType','type'],['mCategory','category'],['mAmount','amount'],['mDate','date'],['mDescription','description']].forEach(([a,k])=>$(a).value=x[k]??'');document.querySelector('[data-tab="money"]').click()}
+ if(action==='medit'){const x=db.money.find(x=>x.id===id);if(!x)return;$('moneyEdit').value=id;[['mType','type'],['mCategory','category'],['mAmount','amount'],['mCustomerMobile','customerMobile'],['mPersonName','personName'],['mCaseNo','caseNo'],['mInvestigationDate','investigationDate'],['mDate','date'],['mDescription','description']].forEach(([a,k])=>$(a).value=x[k]??'');updateMoneyCategoryFields();document.querySelector('[data-tab="money"]').click()}
  if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wDescription','description'],['wReceived','received'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status']].forEach(([a,k])=>$(a).value=w[k]||'');document.querySelector('[data-tab="work"]').click()}
  save();
 });
@@ -109,8 +130,8 @@ $('customerCsvBtn').onclick=()=>downloadCsv('Customer.csv',
  ['Customer Mobile ID','Join Date','Customer Name','NID No','Contact Amount','1st Pay','2nd Pay','3rd Pay','Net Payment','Taken Date','Deadline','Contact Details'],
  db.customers.map(x=>[x.mobile,x.joinDate,x.name,x.nid,x.amount,x.p1,x.p2,x.p3,x.net,x.taken,x.deadline,x.contactDetails]));
 $('moneyCsvBtn').onclick=()=>downloadCsv('Income & Expense.csv',
- ['Record ID','Type','Category','Amount','Date','Description'],
- db.money.map(x=>[x.id,x.type,x.category,x.amount,x.date,x.description]));
+ ['Record ID','Type','Category','Amount','Customer Mobile','Person Name','Case No.','Investigation Date','Date','Description'],
+ db.money.map(x=>[x.id,x.type,x.category,x.amount,x.customerMobile||'',x.personName||'',x.caseNo||'',x.investigationDate||'',x.date,x.description]));
 $('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
  ['Job ID','Customer Name','Status','Job Description','Receive Date','Deadline Date','Handover Date'],
  db.works.map(x=>[x.id,x.customer,x.status,x.description,x.received,x.deadline,x.handover]));
