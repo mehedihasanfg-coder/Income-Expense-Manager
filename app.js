@@ -101,7 +101,8 @@ document.addEventListener('click',e=>{
 
 function downloadCsv(filename,headers,rows){
  const cell=v=>{let s=String(v??'');if(/^[=+@\\-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
- const content='\\uFEFF'+[headers,...rows].map(row=>row.map(cell).join(',')).join('\\r\\n');
+ const content='\\uFEFF'+[headers,...rows].map(row=>row.map(cell).join(',')).join('\\r\
+');
  const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
@@ -115,7 +116,11 @@ $('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
  ['Job ID','Customer Name','Status','Job Description','Receive Date','Deadline Date','Handover Date'],
  db.works.map(x=>[x.id,x.customer,x.status,x.description,x.received,x.deadline,x.handover]));
 
-function closeMenu(){ $('sideMenu').classList.remove('open');$('menuOverlay').classList.remove('open');$('sideMenu').setAttribute('aria-hidden','true');$('menuOpen').setAttribute('aria-expanded','false') }\nfunction openMenu(){ $('sideMenu').classList.add('open');$('menuOverlay').classList.add('open');$('sideMenu').setAttribute('aria-hidden','false');$('menuOpen').setAttribute('aria-expanded','true') }\n$('menuOpen').onclick=openMenu;$('menuClose').onclick=closeMenu;$('menuOverlay').onclick=closeMenu;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});\ndocument.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.menu-link').forEach(x=>x.classList.toggle('active',x.dataset.tab===b.dataset.tab));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));closeMenu()});\n$('openMoney').onclick=()=>{$('money').classList.add('active');document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id==='money'));closeMenu()};
+function closeMenu(){ $('sideMenu').classList.remove('open');$('menuOverlay').classList.remove('open');$('sideMenu').setAttribute('aria-hidden','true');$('menuOpen').setAttribute('aria-expanded','false') }
+function openMenu(){ $('sideMenu').classList.add('open');$('menuOverlay').classList.add('open');$('sideMenu').setAttribute('aria-hidden','false');$('menuOpen').setAttribute('aria-expanded','true') }
+$('menuOpen').onclick=openMenu;$('menuClose').onclick=closeMenu;$('menuOverlay').onclick=closeMenu;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.menu-link').forEach(x=>x.classList.toggle('active',x.dataset.tab===b.dataset.tab));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));closeMenu()});
+$('openMoney').onclick=()=>{$('money').classList.add('active');document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id==='money'));closeMenu()};
 $('customerSearch').oninput=render;$('customerSearchBtn').onclick=render;$('customerSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();render()}};$('moneyFilter').onchange=render;
 $('themeBtn').onclick=()=>{document.documentElement.classList.toggle('dark');localStorage.setItem('iem-dark',document.documentElement.classList.contains('dark')?'1':'0')};if(localStorage.getItem('iem-dark')==='1')document.documentElement.classList.add('dark');
 $('exportBtn').onclick=()=>{const a=document.createElement('a'),blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download='income-expense-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href)};
