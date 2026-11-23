@@ -45,7 +45,7 @@ function render(){
  $('periodSummary').innerHTML='<p>Last 7 days — Income: <b>'+money(sum('Income',x=>x.date>=weekStart))+'</b> · Expense: <b>'+money(sum('Expense',x=>x.date>=weekStart))+'</b></p><p>This month — Income: <b>'+money(sum('Income',x=>x.date.startsWith(month)))+'</b> · Expense: <b>'+money(sum('Expense',x=>x.date.startsWith(month)))+'</b></p>';
  const rem=reminders();
  $('homeReminders').innerHTML=rem.length?rem.slice(0,5).map(r=>'<div class="item"><div><strong>'+esc(r.w.customer)+'</strong><div class="meta">'+esc(r.msg)+' · '+esc(formatMobile(r.w.id))+'</div></div></div>').join(''):'<div class="empty">No upcoming or overdue reminders.</div>';
- const q=digits($('customerSearch').value),cs=db.customers.filter(c=>!q||digits(c.mobile).includes(q));
+ const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q),cs=db.customers.filter(c=>!q||c.name.toLowerCase().includes(q)||digits(c.mobile).includes(qd));
  $('customerList').innerHTML=cs.length?cs.map(c=>item(esc(c.name)+' · '+esc(c.mobile),'Join '+esc(c.joinDate||'—')+' · Contact '+money(c.amount)+' · Net due '+money(c.net)+' · Deadline '+esc(c.deadline||'—'),act('cedit',digits(c.mobile),'Edit')+act('cdel',digits(c.mobile),'Delete','danger'))).join(''):'<div class="empty">No customer records yet.</div>';
  const mf=$('moneyFilter').value,ms=db.money.filter(x=>mf==='All'||x.type===mf).slice().reverse();
  $('moneyList').innerHTML=ms.length?ms.map(x=>item('<span class="'+(x.type==='Income'?'good':'bad')+'">'+esc(x.type)+'</span> · '+money(x.amount),esc(x.category)+' · '+esc(x.date)+' · '+esc(x.description),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))).join(''):'<div class="empty">No transactions yet.</div>';
@@ -71,7 +71,7 @@ $('customerForm').onsubmit=e=>{
  const i=db.customers.findIndex(x=>digits(x.mobile)===digits(mobile));if(i<0)db.customers.push(c);else db.customers[i]=c;
  clearForm($('customerForm'),'customerEdit');$('cJoin').value=today();$('cNet').value='0.00';save();
 };
-$('customerClear').onclick=()=>{clearForm($('customerForm'),'customerEdit');$('cJoin').value=today();$('cNet').value='0.00'};
+$('customerClear').onclick=()=>{clearForm($('customerForm'),'customerEdit');$('cJoin').value=today();$('cNet').value='0.00';$('customerSearch').value='';render()};
 $('moneyForm').onsubmit=e=>{e.preventDefault();const x={id:$('moneyEdit').value||uid('TX'),type:$('mType').value,category:$('mCategory').value,amount:num($('mAmount').value),date:$('mDate').value,description:$('mDescription').value};const i=db.money.findIndex(y=>y.id===x.id);if(i<0)db.money.push(x);else db.money[i]=x;clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today();save()};
 $('moneyClear').onclick=()=>{clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today()};
 $('wId').onchange=()=>{$('wCustomer').value=customerName($('wId').value)};
@@ -98,8 +98,25 @@ document.addEventListener('click',e=>{
  if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wDescription','description'],['wReceived','received'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status']].forEach(([a,k])=>$(a).value=w[k]||'');document.querySelector('[data-tab="work"]').click()}
  save();
 });
+
+function downloadCsv(filename,headers,rows){
+ const cell=v=>{let s=String(v??'');if(/^[=+@\\-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+ const content='\\uFEFF'+[headers,...rows].map(row=>row.map(cell).join(',')).join('\\r\\n');
+ const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+$('customerCsvBtn').onclick=()=>downloadCsv('Customer.csv',
+ ['Customer Mobile ID','Join Date','Customer Name','NID No','Contact Amount','1st Pay','2nd Pay','3rd Pay','Net Payment','Taken Date','Deadline','Contact Details'],
+ db.customers.map(x=>[x.mobile,x.joinDate,x.name,x.nid,x.amount,x.p1,x.p2,x.p3,x.net,x.taken,x.deadline,x.contactDetails]));
+$('moneyCsvBtn').onclick=()=>downloadCsv('Income & Expense.csv',
+ ['Record ID','Type','Category','Amount','Date','Description'],
+ db.money.map(x=>[x.id,x.type,x.category,x.amount,x.date,x.description]));
+$('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
+ ['Job ID','Customer Name','Status','Job Description','Receive Date','Deadline Date','Handover Date'],
+ db.works.map(x=>[x.id,x.customer,x.status,x.description,x.received,x.deadline,x.handover]));
+
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
-$('customerSearch').oninput=render;$('moneyFilter').onchange=render;
+$('customerSearch').oninput=render;$('customerSearchBtn').onclick=render;$('customerSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();render()}};$('moneyFilter').onchange=render;
 $('themeBtn').onclick=()=>{document.documentElement.classList.toggle('dark');localStorage.setItem('iem-dark',document.documentElement.classList.contains('dark')?'1':'0')};if(localStorage.getItem('iem-dark')==='1')document.documentElement.classList.add('dark');
 $('exportBtn').onclick=()=>{const a=document.createElement('a'),blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download='income-expense-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href)};
 $('importFile').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const x=JSON.parse(await f.text());if(!Array.isArray(x.customers)||!Array.isArray(x.money)||!Array.isArray(x.works))throw Error();if(confirm('Replace current records with this backup?')){db=x;save();alert('Backup restored.')}}catch{alert('Invalid backup file.')}e.target.value=''};
