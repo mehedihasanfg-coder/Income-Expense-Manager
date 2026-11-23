@@ -24,13 +24,13 @@ button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12
 <main><nav class="tabs" aria-label="Main sections">
 <button data-tab="home">Dashboard</button><button class="active" data-tab="customers">Customer</button><button data-tab="money">Income & Expense</button><button data-tab="work">Job Details</button><button data-tab="reminders">Reminders</button><button data-tab="backup">Backup</button>
 </nav>
-<section id="home" class="panel">
+<section id="home" class="panel active">
 <div class="card"><h2>Work overview</h2><div class="stats"><div class="stat"><small>Pending</small><strong id="pendingCount">0</strong></div><div class="stat"><small>Due / overdue jobs</small><strong id="dueCount">0</strong></div><div class="stat"><small>Finished</small><strong id="finishedCount">0</strong></div></div></div>
 <div class="card"><h2>Financial overview</h2><div class="stats"><div class="stat"><small>Total income</small><strong id="totalIncome">৳0</strong></div><div class="stat"><small>Total expense</small><strong id="totalExpense">৳0</strong></div><div class="stat"><small>Balance</small><strong id="balance">৳0</strong></div><div class="stat"><small>Manual Due Amount</small><strong id="manualDue">৳0</strong></div></div></div>
 <div class="card"><h2>Weekly & monthly totals</h2><div id="periodSummary" class="note"></div></div>
 <div class="card"><h2>Income & Expense</h2><p class="note">Manage your income and expense transactions.</p><div class="actions"><button class="btn" type="button" id="openMoney">Open Income & Expense</button></div></div><div class="card"><h2>Upcoming reminders</h2><div id="homeReminders" class="list"></div></div>
 </section>
-<section id="customers" class="panel active">
+<section id="customers" class="panel">
 <div class="card"><h2>Customer Details</h2><div class="field"><label for="customerSearch">Search Customer</label><div class="search-row"><input id="customerSearch" inputmode="search" placeholder="Enter customer mobile ID or name"><button class="btn" type="button" id="customerSearchBtn">Search</button></div></div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
 <form id="customerForm" novalidate><input type="hidden" id="customerEdit">
 <div class="grid">
