@@ -47,7 +47,7 @@ button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12
 <div class="field"><label>Deadlines</label><input id="cDeadline" type="date"></div>
 <div class="field full"><label>Contact Details</label><textarea id="cContactDetails" placeholder="Address, phone, or other contact details"></textarea></div>
 <div class="field full"><label>Net Payment (৳)</label><input id="cNet" readonly value="0.00"></div>
-</div><div class="actions"><button class="btn" type="submit">Save</button><button class="btn secondary" type="button" id="customerClear">Clear</button></div></form></div>
+</div><div class="actions"><button class="btn" type="submit">Save</button><button class="btn secondary" type="button" id="customerClear">Clear</button></div></form><div class="actions"><button class="btn secondary" type="button" id="customerCsvBtn">Download Customer.csv</button></div></div>
 <div class="card"><h2>Saved Customers</h2><div id="customerList" class="list"></div></div>
 </section>
 <section id="money" class="panel">
@@ -55,7 +55,7 @@ button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12
 <div class="field"><label>Type</label><select id="mType"><option>Income</option><option>Expense</option></select></div><div class="field"><label>Category</label><input id="mCategory" required placeholder="e.g. Sales, Office"></div>
 <div class="field"><label>Amount (৳)</label><input id="mAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Date</label><input id="mDate" type="date" required></div>
 <div class="field full"><label>Description</label><textarea id="mDescription" placeholder="Optional details"></textarea></div>
-</div><div class="actions"><button class="btn" type="submit">Save record</button><button class="btn secondary" type="button" id="moneyClear">Clear</button></div></form></div>
+</div><div class="actions"><button class="btn" type="submit">Save record</button><button class="btn secondary" type="button" id="moneyClear">Clear</button></div></form><div class="actions"><button class="btn secondary" type="button" id="moneyCsvBtn">Download Income &amp; Expense.csv</button></div></div>
 <div class="card"><div class="toolbar"><h2>Transactions</h2><select id="moneyFilter" style="max-width:130px"><option value="All">All</option><option>Income</option><option>Expense</option></select></div><div id="moneyList" class="list"></div></div>
 </section>
 <section id="work" class="panel">
@@ -67,7 +67,7 @@ button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12
 <div class="field"><label>Receive Date</label><input id="wReceived" type="date" required></div>
 <div class="field"><label>Deadline Date</label><input id="wDeadline" type="date" required></div>
 <div class="field"><label>Handover Date</label><input id="wHandover" type="date"></div>
-</div><div class="actions"><button class="btn" type="submit">Save Job</button><button class="btn secondary" type="button" id="workClear">Clear</button></div></form></div>
+</div><div class="actions"><button class="btn" type="submit">Save Job</button><button class="btn secondary" type="button" id="workClear">Clear</button></div></form><div class="actions"><button class="btn secondary" type="button" id="workCsvBtn">Download Job Details.csv</button></div></div>
 <div class="card"><h2>Job List</h2><div id="workList" class="list"></div></div>
 </section>
 <section id="reminders" class="panel"><div class="card"><h2>Job reminders</h2><p class="note">Reminders are shown in this app: 7 days before a deadline, on the deadline, and every day after the deadline until the job is marked Finished or Returned. Open the app regularly to review reminders.</p><div class="actions"><button class="btn" id="notifyBtn">Enable browser notifications</button></div><div id="reminderList" class="list"></div></div></section>
