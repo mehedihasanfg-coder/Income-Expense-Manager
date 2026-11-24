@@ -155,7 +155,21 @@ $('previousPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.c
 $('nextPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.contains('active'));if(i>=0&&i<pageOrder.length-1)showPage(pageOrder[i+1])};
 $('openMoney').onclick=()=>showPage('money');
 showPage('home');
-$('customerSearch').oninput=render;$('customerSearchBtn').onclick=render;$('customerSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();render()}};$('moneyFilter').onchange=render;
+function openCustomerSearch(){
+ const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q);
+ if(!q){alert('Enter a customer name or mobile number to search.');$('customerSearch').focus();return}
+ const matches=db.customers.filter(c=>String(c.name||'').toLowerCase().includes(q)||(qd.length>0&&digits(c.mobile).includes(qd)));
+ $('customerSearchResults').innerHTML=matches.length?matches.map(c=>'<div class="customer-result"><strong>'+esc(c.name)+'</strong><div class="meta">Customer Mobile (ID): '+esc(c.mobile)+'<br>Join Date: '+esc(c.joinDate||'—')+'<br>NID No.: '+esc(c.nid||'—')+'<br>Contact Amount: '+money(c.amount)+'<br>1st Pay: '+money(c.p1)+' · 2nd Pay: '+money(c.p2)+' · 3rd Pay: '+money(c.p3)+'<br>Net Payment: '+money(c.net)+'<br>Taken Date: '+esc(c.taken||'—')+'<br>Deadline: '+esc(c.deadline||'—')+'<br>Contact Details: '+esc(c.contactDetails||'—')+'</div><div class="actions">'+act('cedit',digits(c.mobile),'Edit')+'</div></div>').join(''):'<div class="empty">No matching customer found.</div>';
+ $('customerForm').hidden=true;$('customerList').parentElement.hidden=true;$('customerCsvBtn').parentElement.hidden=true;
+ $('customerSearchPage').hidden=false;$('customerSearchPage').classList.remove('active');void $('customerSearchPage').offsetWidth;$('customerSearchPage').classList.add('active');
+}
+function closeCustomerSearch(){
+ $('customerSearchPage').classList.remove('active');$('customerSearchPage').hidden=true;
+ $('customerForm').hidden=false;$('customerList').parentElement.hidden=false;$('customerCsvBtn').parentElement.hidden=false;
+}
+$('customerSearchBtn').onclick=openCustomerSearch;
+$('customerSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();openCustomerSearch()}};
+$('customerSearchBack').onclick=closeCustomerSearch;$('moneyFilter').onchange=render;
 $('themeBtn').onclick=()=>{document.documentElement.classList.toggle('dark');localStorage.setItem('iem-dark',document.documentElement.classList.contains('dark')?'1':'0')};if(localStorage.getItem('iem-dark')==='1')document.documentElement.classList.add('dark');
 $('exportBtn').onclick=()=>{const a=document.createElement('a'),blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download='income-expense-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href)};
 $('importFile').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const x=JSON.parse(await f.text());if(!Array.isArray(x.customers)||!Array.isArray(x.money)||!Array.isArray(x.works))throw Error();if(confirm('Replace current records with this backup?')){db=x;save();alert('Backup restored.')}}catch{alert('Invalid backup file.')}e.target.value=''};
