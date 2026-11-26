@@ -49,7 +49,8 @@ function render(){
  const mf=$('moneyFilter').value,ms=db.money.filter(x=>mf==='All'||x.type===mf).slice().reverse();
  $('moneyList').innerHTML=ms.length?ms.map(x=>{const extra=x.customerMobile?' · '+esc(x.customerMobile)+' · '+esc(x.personName||''):x.caseNo?' · Case '+esc(x.caseNo)+' · Investigation '+esc(x.investigationDate||''):'';return item('<span class="'+(x.type==='Income'?'good':'bad')+'">'+esc(x.type)+'</span> · '+money(x.amount),esc(x.category)+extra+' · '+esc(x.date)+' · '+esc(x.description),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))}).join(''):'<div class="empty">No transactions yet.</div>';
  $('workList').innerHTML=db.works.slice().reverse().map(w=>item(esc(formatMobile(w.id))+' · '+esc(w.customer),'Job: '+esc(w.description)+' · Deadline '+esc(w.deadline)+' · Handover '+esc(w.handover||'—')+' · <b>'+esc(status(w))+'</b>',act('wedit',w.id,'Edit')+act('wdel',w.id,'Delete','danger'))).join('')||'<div class="empty">No job records yet.</div>';
- $('reminderList').innerHTML=rem.length?rem.map(r=>item(esc(r.w.customer)+' · '+esc(formatMobile(r.w.id)),esc(r.msg)+' · Deadline '+esc(r.date),act('wedit',r.w.id,'Open job'))).join(''):'<div class="empty">No upcoming or overdue reminders.</div>';
+ const selectedReminders=db.works.filter(w=>w.reminder===true).slice().sort((a,b)=>String(a.deadline||'').localeCompare(String(b.deadline||'')));
+ $('reminderList').innerHTML=selectedReminders.length?selectedReminders.map(w=>item(esc(w.customer)+' · '+esc(formatMobile(w.id)), 'Deadline: '+esc(w.deadline||'—')+' · Receive: '+esc(w.received||'—')+' · Status: '+esc(status(w))+' · '+esc(w.description||''),act('wedit',w.id,'Open job'))).join(''):'<div class="empty">None of them files are Reminder!</div>';
  refreshJobOptions($('wId').value);
 }
 function clearForm(form,hidden){form.reset();$(hidden).value=''}
@@ -98,12 +99,12 @@ $('wId').onchange=()=>{$('wCustomer').value=customerName($('wId').value)};
 $('workForm').onsubmit=e=>{
  e.preventDefault();const id=digits($('wId').value),customer=customerName(id);
  if(!validMobile(id)||!customer){alert('Select a saved Customer Mobile (ID) first.');return}
- const w={id,customer,description:$('wDescription').value.trim(),received:$('wReceived').value,deadline:$('wDeadline').value,handover:$('wHandover').value,status:$('wStatus').value};
+ const w={id,customer,description:$('wDescription').value.trim(),received:$('wReceived').value,deadline:$('wDeadline').value,handover:$('wHandover').value,status:$('wStatus').value,reminder:$('wReminder').checked};
  if(!w.description){alert('Enter Job Description.');return}
  const i=db.works.findIndex(x=>digits(x.id)===id);if(i<0)db.works.push(w);else db.works[i]=w;
  clearForm($('workForm'),'workEdit');$('wReceived').value=today();refreshJobOptions();save();
 };
-$('workClear').onclick=()=>{clearForm($('workForm'),'workEdit');$('wReceived').value=today();refreshJobOptions()};
+$('workClear').onclick=()=>{clearForm($('workForm'),'workEdit');$('wReceived').value=today();$('wReminder').checked=false;refreshJobOptions()};
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-action]');if(!b)return;const {action,id}=b.dataset;
  if(action==='cdel'&&confirm('Delete this customer?'))db.customers=db.customers.filter(x=>digits(x.mobile)!==digits(id));
@@ -115,7 +116,7 @@ document.addEventListener('click',e=>{
   document.querySelector('[data-tab="customers"]').click();
  }
  if(action==='medit'){const x=db.money.find(x=>x.id===id);if(!x)return;$('moneyEdit').value=id;const catSelect=$('mCategory');if(x.category&&!Array.from(catSelect.options).some(o=>o.value===x.category)){const legacy=document.createElement('option');legacy.value=x.category;legacy.textContent='Existing: '+x.category;catSelect.appendChild(legacy)}[['mType','type'],['mCategory','category'],['mAmount','amount'],['mCustomerMobile','customerMobile'],['mPersonName','personName'],['mCaseNo','caseNo'],['mInvestigationDate','investigationDate'],['mDate','date'],['mDescription','description']].forEach(([a,k])=>$(a).value=x[k]??'');updateMoneyCategoryFields();document.querySelector('[data-tab="money"]').click()}
- if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wDescription','description'],['wReceived','received'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status']].forEach(([a,k])=>$(a).value=w[k]||'');document.querySelector('[data-tab="work"]').click()}
+ if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wDescription','description'],['wReceived','received'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status']].forEach(([a,k])=>$(a).value=w[k]||'');$('wReminder').checked=w.reminder===true;document.querySelector('[data-tab="work"]').click()}
  save();
 });
 
@@ -132,8 +133,8 @@ $('moneyCsvBtn').onclick=()=>downloadCsv('Income & Expense.csv',
  ['Record ID','Type','Category','Amount','Customer Mobile','Person Name','Case No.','Investigation Date','Date','Description'],
  db.money.map(x=>[x.id,x.type,x.category,x.amount,x.customerMobile||'',x.personName||'',x.caseNo||'',x.investigationDate||'',x.date,x.description]));
 $('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
- ['Job ID','Customer Name','Status','Job Description','Receive Date','Deadline Date','Handover Date'],
- db.works.map(x=>[x.id,x.customer,x.status,x.description,x.received,x.deadline,x.handover]));
+ ['Job ID','Customer Name','Status','Job Description','Receive Date','Deadline Date','Handover Date','Reminder'],
+ db.works.map(x=>[x.id,x.customer,x.status,x.description,x.received,x.deadline,x.handover,x.reminder?'Yes':'No']));
 
 function closeMenu(){ $('sideMenu').classList.remove('open');$('menuOverlay').classList.remove('open');$('sideMenu').setAttribute('aria-hidden','true');$('menuOpen').setAttribute('aria-expanded','false') }
 function openMenu(){ $('sideMenu').classList.add('open');$('menuOverlay').classList.add('open');$('sideMenu').setAttribute('aria-hidden','false');$('menuOpen').setAttribute('aria-expanded','true') }
@@ -145,13 +146,14 @@ function showPage(tab){
  document.querySelectorAll('.menu-link').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
  document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===tab));
  document.querySelectorAll('.bottom-nav [data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
+ $('bottomPersonal').classList.toggle('active',tab==='personal');
  $('previousPage').disabled=index===0;$('nextPage').disabled=index===pageOrder.length-1;
  closeMenu();
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>showPage(b.dataset.tab));
 $('previousPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.contains('active'));if(i>0)showPage(pageOrder[i-1])};
 $('nextPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.contains('active'));if(i>=0&&i<pageOrder.length-1)showPage(pageOrder[i+1])};
-$('scheduleHero').onclick=()=>showPage('reminders');$('viewAllJobs').onclick=()=>showPage('work');
+$('scheduleHero').onclick=()=>{render();showPage('reminders')};$('viewAllJobs').onclick=()=>showPage('work');$('reminderBack').onclick=()=>showPage('home');
 $('businessHero').onclick=()=>showPage('money');
 document.querySelectorAll('[data-job-filter]').forEach(b=>b.onclick=()=>showPage('work'));
 function openPersonalInfo(){ $('pinOverlay').hidden=false;$('personalPin').value='';$('pinError').hidden=true;setTimeout(()=>$('personalPin').focus(),40) }
@@ -161,6 +163,10 @@ $('pinCancel').onclick=closePin;
 $('pinUnlock').onclick=()=>{const pin=$('personalPin').value;if(!pin)return;if(pin==='Rayat&Raika'){closePin();showPage('personal')}else{$('pinError').hidden=false;$('personalPin').focus();$('personalPin').select()}};
 $('personalPin').onkeydown=e=>{if(e.key==='Enter')$('pinUnlock').click();if(e.key==='Escape')closePin()};
 $('personalBack').onclick=()=>showPage('home');
+function loadProfile(){let p={};try{p=JSON.parse(localStorage.getItem('iem-profile')||'{}')}catch{};[['profileName','name'],['profileMobile','mobile'],['profileEmail','email'],['profileAddress','address'],['profileBusiness','business'],['profileNotes','notes']].forEach(([id,key])=>$(id).value=p[key]||'')}
+$('profileForm').onsubmit=e=>{e.preventDefault();const p={name:$('profileName').value.trim(),mobile:$('profileMobile').value.trim(),email:$('profileEmail').value.trim(),address:$('profileAddress').value,business:$('profileBusiness').value.trim(),notes:$('profileNotes').value};localStorage.setItem('iem-profile',JSON.stringify(p));alert('Personal information saved on this device.')};
+$('profileClear').onclick=()=>{if(confirm('Clear the personal information form?'))$('profileForm').reset()};
+loadProfile();
 showPage('home');
 function openCustomerSearch(){
  const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q);
