@@ -140,7 +140,16 @@ function closeMenu(){ $('sideMenu').classList.remove('open');$('menuOverlay').cl
 function openMenu(){ $('sideMenu').classList.add('open');$('menuOverlay').classList.add('open');$('sideMenu').setAttribute('aria-hidden','false');$('menuOpen').setAttribute('aria-expanded','true') }
 $('menuOpen').onclick=openMenu;$('menuClose').onclick=closeMenu;$('menuOverlay').onclick=closeMenu;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
 const pageOrder=['home','customers','work','money','personal','reminders','backup'];
-const pageNames=['Dashboard','Customer','Job Details','Income & Expense','Reminders','Backup'];
+const pageNames={home:'Dashboard',customers:'Customers',work:'Job Overview',money:'Income & Expense',personal:'Personal Info',reminders:'Schedule JOBS Reminder',backup:'Backup & Restore'};
+pageOrder.filter(id=>id!=='home').forEach(id=>{
+ const panel=$(id);
+ if(panel&&!panel.querySelector('.section-page-head')){
+  const head=document.createElement('div');head.className='section-page-head';
+  head.innerHTML='<button type="button" aria-label="Back to Dashboard">‹</button><strong>'+pageNames[id]+'</strong>';
+  head.querySelector('button').onclick=()=>showPage('home');
+  panel.insertBefore(head,panel.firstChild);
+ }
+});
 function showPage(tab){
  const index=pageOrder.indexOf(tab);if(index<0)return;
  if(tab==='reminders')render();
