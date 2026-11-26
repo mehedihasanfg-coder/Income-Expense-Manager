@@ -61,17 +61,82 @@ button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12
 .customer-result strong{font-size:16px}
 .customer-result .meta{line-height:1.65;overflow-wrap:anywhere}
 </style>
-</head><body>
-<header><div class="headrow"><div class="headleft"><button class="menu-btn" id="menuOpen" type="button" aria-label="Open menu" aria-expanded="false">☰</button><div><h1>Income & Expense Manager</h1><p>Personal business records · BDT ৳ · Offline-ready</p></div></div><button class="btn secondary" id="themeBtn" aria-label="Toggle dark mode">☾</button></div></header><div class="menu-overlay" id="menuOverlay"></div><nav class="side-menu" id="sideMenu" aria-label="Main menu" aria-hidden="true"><div class="menu-brand"><div class="brand-mark">IE</div><div class="brand-copy"><strong>My Workspace</strong><span>INCOME &amp; EXPENSE MANAGER</span></div><button class="menu-close" id="menuClose" type="button" aria-label="Close menu">×</button></div><div class="menu-caption">MAIN MENU</div><button class="menu-link" data-tab="home"><span class="menu-icon">⌂</span><span>Dashboard</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="customers"><span class="menu-icon">♙</span><span>Customer</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="work"><span class="menu-icon">▤</span><span>Job Details</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="money"><span class="menu-icon">৳</span><span>Income &amp; Expense</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="reminders"><span class="menu-icon">◷</span><span>Reminders</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="backup"><span class="menu-icon">▣</span><span>Backup</span><span class="menu-arrow">›</span></button><div class="menu-footer"><span class="footer-dot"></span> Your private workspace</div></nav>
+<style>
+/* Dashboard refresh */
+#home{display:flex;flex-direction:column;gap:14px}
+.dash-hero{width:100%;min-height:142px;border:0;border-radius:20px;padding:22px 20px;display:flex;align-items:center;gap:16px;text-align:left;color:#fff;position:relative;overflow:hidden;box-shadow:0 7px 18px #174a8620}
+.schedule-hero{background:linear-gradient(112deg,#1768d8,#1745bd)}
+.hero-symbol{width:72px;height:72px;flex:0 0 72px;border-radius:18px;background:#ffffff24;display:grid;place-items:center;font-size:52px;position:relative}
+.hero-symbol i{position:absolute;font-size:25px;right:-5px;bottom:-4px;font-style:normal}
+.hero-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:9px}
+.hero-copy strong{font-size:21px;line-height:1.2;color:inherit}
+.hero-copy small{font-size:14px;line-height:1.55;color:inherit;opacity:.9;max-width:340px}
+.hero-arrow{font-size:36px;font-weight:300;line-height:1;margin-left:auto}
+.job-overview-card,.weekly-card{background:var(--card);border:1px solid var(--line);border-radius:19px;padding:16px;box-shadow:0 3px 12px #14263a0b}
+.dash-section-head{display:flex;justify-content:space-between;align-items:center;margin:0 2px 12px}
+.dash-section-head h2,.weekly-card h2{margin:0;font-size:20px}
+.view-all{border:0;background:transparent;color:#1764d7;font-weight:700;font-size:14px}
+.job-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.job-tile{min-width:0;min-height:112px;border:0;border-radius:17px;padding:13px 12px;display:flex;align-items:center;gap:10px;text-align:left;color:#14213c}
+.job-icon{width:58px;height:58px;flex:0 0 58px;border-radius:17px;display:grid;place-items:center;font-size:31px;background:#ffffff8c}
+.job-copy{display:flex;min-width:0;flex:1;flex-direction:column;gap:5px}
+.job-copy small{font-size:14px;font-weight:650;line-height:1.2}
+.job-copy strong{font-size:29px;line-height:1.1}
+.job-tile>b{font-size:27px;font-weight:400}
+.job-tile.entry{background:#edf4ff;color:#1764d7}.job-tile.applied{background:#eaf8f1;color:#20a36a}
+.job-tile.pending{background:#fff6e8;color:#e99513}.job-tile.overdue{background:#fff0f1;color:#df4b55}
+.job-tile.approved{background:#f3efff;color:#7654d8}.job-tile.handover{background:#eaf8fa;color:#12a6b4}
+.business-hero{min-height:150px;background:linear-gradient(112deg,#3477e8,#1648c7);padding:22px 20px}
+.business-art{font-size:49px;color:#8ac4ff;letter-spacing:-7px;white-space:nowrap;opacity:.9}
+.business-art b{display:inline-grid;place-items:center;width:43px;height:48px;margin-left:8px;border-radius:13px;background:#ffffff27;color:white;font-size:25px;letter-spacing:0}
+.weekly-card{padding:18px}
+.period-list{margin-top:13px;border:1px solid var(--line);border-radius:15px;overflow:hidden}
+.period-row{display:flex;align-items:center;gap:13px;padding:13px 12px}
+.period-row+.period-row{border-top:1px solid var(--line)}
+.period-icon{width:52px;height:52px;flex:0 0 52px;border-radius:15px;background:#e9f8f0;color:#20a36a;display:grid;place-items:center;font-size:26px}
+.period-row:nth-child(2) .period-icon{background:#eaf1ff;color:#2168d9}
+.period-copy{min-width:0;flex:1}
+.period-copy strong{display:block;font-size:16px;margin-bottom:4px}
+.period-copy span{font-size:14px;line-height:1.55}
+.period-copy .income{color:#169b5e;font-weight:650}.period-copy .expense{color:#e44852;font-weight:650}
+.personal-hero{min-height:150px;background:linear-gradient(112deg,#456fe5,#3652c9)}
+.personal-art{font-size:66px;color:#ffffff45;position:relative;margin-right:14px}
+.personal-art i{position:absolute;right:-9px;bottom:-1px;font-size:25px;font-style:normal;color:#ffffff80}
+.dashboard-extra{padding:4px 2px 10px}
+.dashboard-extra h2{margin:18px 0 10px}
+.pin-overlay{position:fixed;inset:0;z-index:50;background:#08172c88;display:grid;place-items:center;padding:20px}
+.pin-overlay[hidden]{display:none}
+.pin-dialog{width:min(340px,100%);background:var(--card);color:var(--ink);border-radius:19px;padding:22px 19px 16px;box-shadow:0 18px 55px #07182c55;text-align:center}
+.pin-lock{width:52px;height:52px;margin:-44px auto 10px;border-radius:50%;background:var(--card);display:grid;place-items:center;color:#2469dc;font-size:27px;box-shadow:0 3px 12px #14263a20}
+.pin-dialog p{font-size:16px;font-weight:700;line-height:1.45;margin:7px 0 13px}
+.pin-dialog input{margin-bottom:10px}
+.pin-actions{display:flex;justify-content:space-between;gap:10px}
+.pin-actions button{flex:1;border:0;border-radius:9px;padding:11px;font:650 14px system-ui}
+.pin-cancel{background:var(--bg);color:var(--muted)}.pin-unlock{background:#2469dc;color:white}
+.pin-dialog .pin-error{font-size:12px;color:#d9414d;margin:10px 0 0}
+@media(max-width:560px){.dash-hero{min-height:128px;padding:17px 15px;border-radius:17px}.hero-copy strong{font-size:18px}.hero-copy small{font-size:13px}.hero-symbol{width:58px;height:58px;flex-basis:58px;font-size:42px}.job-overview-card{padding:13px}.job-grid{gap:9px}.job-tile{min-height:100px;padding:10px 8px;gap:7px}.job-icon{width:46px;height:46px;flex-basis:46px;font-size:26px}.job-copy small{font-size:12px}.job-copy strong{font-size:25px}.job-tile>b{font-size:22px}.business-art{font-size:37px}.period-row{gap:9px;padding:11px 9px}.period-icon{width:45px;height:45px;flex-basis:45px}.period-copy span{font-size:12px}}
+</style></head><body>
+<header><div class="headrow"><div class="headleft"><button class="menu-btn" id="menuOpen" type="button" aria-label="Open menu" aria-expanded="false">☰</button><div><h1>Income & Expense Manager</h1><p>Personal business records · BDT ৳ · Offline-ready</p></div></div><button class="btn secondary" id="themeBtn" aria-label="Toggle dark mode">☾</button></div></header><div class="menu-overlay" id="menuOverlay"></div><nav class="side-menu" id="sideMenu" aria-label="Main menu" aria-hidden="true"><div class="menu-brand"><div class="brand-mark">IE</div><div class="brand-copy"><strong>My Workspace</strong><span>INCOME &amp; EXPENSE MANAGER</span></div><button class="menu-close" id="menuClose" type="button" aria-label="Close menu">×</button></div><div class="menu-caption">MAIN MENU</div><button class="menu-link" data-tab="home"><span class="menu-icon">⌂</span><span>Dashboard</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="customers"><span class="menu-icon">♙</span><span>Customer</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="work"><span class="menu-icon">▤</span><span>Job Details</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="money"><span class="menu-icon">৳</span><span>Income &amp; Expense</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="reminders"><span class="menu-icon">◷</span><span>Reminders</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="backup"><span class="menu-icon">▣</span><span>Backup</span><span class="menu-arrow">›</span></button><button class="menu-link" data-tab="personal"><span class="menu-icon">♙</span><span>Personal Info</span><span class="menu-arrow">›</span></button><div class="menu-footer"><span class="footer-dot"></span> Your private workspace</div></nav>
 <main><div class="page-nav" aria-label="Page navigation"><button id="previousPage" type="button" aria-label="Previous page" title="Previous page">‹</button><button id="nextPage" type="button" aria-label="Next page" title="Next page">›</button></div><nav class="tabs" aria-label="Main sections">
 <button data-tab="home">Dashboard</button><button class="active" data-tab="customers">Customer</button><button data-tab="money">Income & Expense</button><button data-tab="work">Job Details</button><button data-tab="reminders">Reminders</button><button data-tab="backup">Backup</button>
 </nav>
 <section id="home" class="panel active">
-<div class="card"><h2>Work overview</h2><div class="stats"><div class="stat"><small>Pending</small><strong id="pendingCount">0</strong></div><div class="stat"><small>Due / overdue jobs</small><strong id="dueCount">0</strong></div><div class="stat"><small>Finished</small><strong id="finishedCount">0</strong></div></div></div>
-<div class="card"><h2>Financial overview</h2><div class="stats"><div class="stat"><small>Total income</small><strong id="totalIncome">৳0</strong></div><div class="stat"><small>Total expense</small><strong id="totalExpense">৳0</strong></div><div class="stat"><small>Balance</small><strong id="balance">৳0</strong></div><div class="stat"><small>Manual Due Amount</small><strong id="manualDue">৳0</strong></div></div></div>
-<div class="card"><h2>Weekly & monthly totals</h2><div id="periodSummary" class="note"></div></div>
-<div class="card"><h2>Income & Expense</h2><p class="note">Manage your income and expense transactions.</p><div class="actions"><button class="btn" type="button" id="openMoney">Open Income & Expense</button></div></div><div class="card"><h2>Upcoming reminders</h2><div id="homeReminders" class="list"></div></div>
+<button class="dash-hero schedule-hero" id="scheduleHero" type="button"><span class="hero-symbol">▦<i>♧</i></span><span class="hero-copy"><strong>Schedule JOBS Reminder</strong><small>Stay on track! Don’t miss any important job schedules.</small></span><span class="hero-arrow">›</span></button>
+<div class="job-overview-card"><div class="dash-section-head"><h2>JOB Overview</h2><button type="button" class="view-all" id="viewAllJobs">View all&nbsp; ›</button></div><div class="job-grid">
+<button class="job-tile entry" type="button" data-job-filter="Entry level"><span class="job-icon">♙</span><span class="job-copy"><small>Entry level</small><strong id="entryCount">0</strong></span><b>›</b></button>
+<button class="job-tile applied" type="button" data-job-filter="Applied"><span class="job-icon">▤</span><span class="job-copy"><small>Applied</small><strong id="appliedCount">0</strong></span><b>›</b></button>
+<button class="job-tile pending" type="button" data-job-filter="Pending"><span class="job-icon">⌛</span><span class="job-copy"><small>Pending</small><strong id="pendingCount">0</strong></span><b>›</b></button>
+<button class="job-tile overdue" type="button" data-job-filter="Due"><span class="job-icon">◷</span><span class="job-copy"><small>OverDues</small><strong id="dueCount">0</strong></span><b>›</b></button>
+<button class="job-tile approved" type="button" data-job-filter="Approved/DCR"><span class="job-icon">✿</span><span class="job-copy"><small>Approved/DCR</small><strong id="approvedCount">0</strong></span><b>›</b></button>
+<button class="job-tile handover" type="button" data-job-filter="Handover"><span class="job-icon">♧</span><span class="job-copy"><small>Handover</small><strong id="handoverCount">0</strong></span><b>›</b></button>
+</div></div>
+<button class="dash-hero business-hero" id="businessHero" type="button"><span class="hero-copy"><strong>Business at a glance</strong><small>Overall summary of your business performance.</small></span><span class="business-art">▥↗<b>৳</b></span><span class="hero-arrow">›</span></button>
+<div class="weekly-card"><h2>Weekly &amp; monthly totals</h2><div id="periodSummary" class="period-list"></div></div>
+<button class="dash-hero personal-hero" id="personalHero" type="button"><span class="hero-copy"><strong>Personal Info</strong><small>Your personal information is private and secure.</small></span><span class="personal-art">♙<i>▣</i></span><span class="hero-arrow">›</span></button>
+<div class="dashboard-extra"><div class="stats"><div class="stat"><small>Total income</small><strong id="totalIncome">৳0</strong></div><div class="stat"><small>Total expense</small><strong id="totalExpense">৳0</strong></div><div class="stat"><small>Balance</small><strong id="balance">৳0</strong></div><div class="stat"><small>Manual Due Amount</small><strong id="manualDue">৳0</strong></div></div><div class="actions"><button class="btn" type="button" id="openMoney">Open Income &amp; Expense</button></div><h2>Upcoming reminders</h2><div id="homeReminders" class="list"></div></div>
 </section>
+<section id="personal" class="panel"><div class="card"><div class="toolbar"><h2>Personal Information</h2><button class="btn secondary small" type="button" id="personalBack">Back</button></div><p class="note">Welcome to your private Personal page. Your personal information can be added here.</p></div></section>
+<div class="pin-overlay" id="pinOverlay" hidden><div class="pin-dialog" role="dialog" aria-modal="true" aria-labelledby="pinMessage"><div class="pin-lock">♙</div><p id="pinMessage">Unauthorised access denied? Input PIN!</p><input id="personalPin" type="password" autocomplete="off" placeholder="Enter PIN" aria-label="Input PIN"><div class="pin-actions"><button type="button" class="pin-cancel" id="pinCancel">Cancel</button><button type="button" class="pin-unlock" id="pinUnlock">Unlock</button></div><p class="pin-error" id="pinError" hidden>Incorrect PIN. Access denied.</p></div></div>
 <section id="customers" class="panel">
 <div class="card"><h2>Customer Details</h2><div class="field"><label for="customerSearch">Search Customer</label><div class="search-row"><input id="customerSearch" inputmode="search" placeholder="Enter customer mobile ID or name"><button class="btn" type="button" id="customerSearchBtn">Search</button></div></div>
 <div id="customerSearchPage" class="customer-search-page" aria-live="polite" hidden>
