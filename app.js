@@ -139,10 +139,11 @@ $('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
 function closeMenu(){ $('sideMenu').classList.remove('open');$('menuOverlay').classList.remove('open');$('sideMenu').setAttribute('aria-hidden','true');$('menuOpen').setAttribute('aria-expanded','false') }
 function openMenu(){ $('sideMenu').classList.add('open');$('menuOverlay').classList.add('open');$('sideMenu').setAttribute('aria-hidden','false');$('menuOpen').setAttribute('aria-expanded','true') }
 $('menuOpen').onclick=openMenu;$('menuClose').onclick=closeMenu;$('menuOverlay').onclick=closeMenu;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
-const pageOrder=['home','customers','work','money','reminders','backup','personal'];
+const pageOrder=['home','customers','work','money','personal','reminders','backup'];
 const pageNames=['Dashboard','Customer','Job Details','Income & Expense','Reminders','Backup'];
 function showPage(tab){
  const index=pageOrder.indexOf(tab);if(index<0)return;
+ if(tab==='reminders')render();
  document.querySelectorAll('.menu-link').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
  document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===tab));
  document.querySelectorAll('.bottom-nav [data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
@@ -157,7 +158,7 @@ $('scheduleHero').onclick=()=>{render();showPage('reminders')};$('viewAllJobs').
 $('businessHero').onclick=()=>showPage('money');
 document.querySelectorAll('[data-job-filter]').forEach(b=>b.onclick=()=>showPage('work'));
 function openPersonalInfo(){ $('pinOverlay').hidden=false;$('personalPin').value='';$('pinError').hidden=true;setTimeout(()=>$('personalPin').focus(),40) }
-$('personalHero').onclick=openPersonalInfo;$('bottomPersonal').onclick=openPersonalInfo;
+$('personalHero').onclick=openPersonalInfo;$('bottomPersonal').onclick=openPersonalInfo;$('sidePersonal').onclick=openPersonalInfo;
 function closePin(){ $('pinOverlay').hidden=true;$('personalPin').value='';$('pinError').hidden=true }
 $('pinCancel').onclick=closePin;
 $('pinUnlock').onclick=()=>{const pin=$('personalPin').value;if(!pin)return;if(pin==='Rayat&Raika'){closePin();showPage('personal')}else{$('pinError').hidden=false;$('personalPin').focus();$('personalPin').select()}};
