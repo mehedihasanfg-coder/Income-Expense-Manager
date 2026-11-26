@@ -144,17 +144,18 @@ function showPage(tab){
  const index=pageOrder.indexOf(tab);if(index<0)return;
  document.querySelectorAll('.menu-link').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
  document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===tab));
+ document.querySelectorAll('.bottom-nav [data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
  $('previousPage').disabled=index===0;$('nextPage').disabled=index===pageOrder.length-1;
  closeMenu();
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>showPage(b.dataset.tab));
 $('previousPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.contains('active'));if(i>0)showPage(pageOrder[i-1])};
 $('nextPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.contains('active'));if(i>=0&&i<pageOrder.length-1)showPage(pageOrder[i+1])};
-$('openMoney').onclick=()=>showPage('money');
 $('scheduleHero').onclick=()=>showPage('reminders');$('viewAllJobs').onclick=()=>showPage('work');
 $('businessHero').onclick=()=>showPage('money');
 document.querySelectorAll('[data-job-filter]').forEach(b=>b.onclick=()=>showPage('work'));
-$('personalHero').onclick=()=>{ $('pinOverlay').hidden=false;$('personalPin').value='';$('pinError').hidden=true;setTimeout(()=>$('personalPin').focus(),40) };
+function openPersonalInfo(){ $('pinOverlay').hidden=false;$('personalPin').value='';$('pinError').hidden=true;setTimeout(()=>$('personalPin').focus(),40) }
+$('personalHero').onclick=openPersonalInfo;$('bottomPersonal').onclick=openPersonalInfo;
 function closePin(){ $('pinOverlay').hidden=true;$('personalPin').value='';$('pinError').hidden=true }
 $('pinCancel').onclick=closePin;
 $('pinUnlock').onclick=()=>{const pin=$('personalPin').value;if(!pin)return;if(pin==='Rayat&Raika'){closePin();showPage('personal')}else{$('pinError').hidden=false;$('personalPin').focus();$('personalPin').select()}};
@@ -176,7 +177,8 @@ function closeCustomerSearch(){
 $('customerSearchBtn').onclick=openCustomerSearch;
 $('customerSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();openCustomerSearch()}};
 $('customerSearchBack').onclick=closeCustomerSearch;$('moneyFilter').onchange=render;
-$('themeBtn').onclick=()=>{document.documentElement.classList.toggle('dark');localStorage.setItem('iem-dark',document.documentElement.classList.contains('dark')?'1':'0')};if(localStorage.getItem('iem-dark')==='1')document.documentElement.classList.add('dark');
+function applyTheme(dark){document.documentElement.classList.toggle('dark',dark);$('themeBtn').textContent=dark?'☀':'☾';$('themeBtn').setAttribute('aria-label',dark?'Switch to light mode':'Switch to dark mode')}
+applyTheme(localStorage.getItem('iem-dark')==='1');$('themeBtn').onclick=()=>{const dark=!document.documentElement.classList.contains('dark');localStorage.setItem('iem-dark',dark?'1':'0');applyTheme(dark)};
 $('exportBtn').onclick=()=>{const a=document.createElement('a'),blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download='income-expense-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href)};
 $('importFile').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const x=JSON.parse(await f.text());if(!Array.isArray(x.customers)||!Array.isArray(x.money)||!Array.isArray(x.works))throw Error();if(confirm('Replace current records with this backup?')){db=x;save();alert('Backup restored.')}}catch{alert('Invalid backup file.')}e.target.value=''};
 $('clearAll').onclick=()=>{if(confirm('Permanently delete all records stored in this browser?')){db={customers:[],money:[],works:[]};save()}};
