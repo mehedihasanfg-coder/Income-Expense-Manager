@@ -49,7 +49,7 @@ button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12
 .page-nav #previousPage{left:2px;right:auto}
 .page-nav #nextPage{right:2px;left:auto}
 .page-nav button:disabled{opacity:.3;cursor:not-allowed}
-</style>
+.dashboard-credit{text-align:center;padding:16px 8px 22px;margin-top:0;color:var(--muted);font-size:13px;line-height:1.6;border-top:1px solid var(--line)}.dashboard-credit strong{display:block;color:var(--ink);font-size:14px;font-weight:750}</style>
 <style>
 .customer-search-page{display:none;overflow:hidden;transform:translateX(100%);opacity:0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 8px 24px #14263a14}
 .customer-search-page.active{display:block;animation:customerSlideIn .28s ease-out forwards}
@@ -133,7 +133,7 @@ button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12
 <button class="dash-hero business-hero" id="businessHero" type="button"><span class="hero-copy"><strong>Business at a glance</strong><small>Overall summary of your business performance.</small></span><span class="business-art">▥↗<b>৳</b></span><span class="hero-arrow">›</span></button>
 <div class="weekly-card"><h2>Weekly &amp; monthly totals</h2><div id="periodSummary" class="period-list"></div></div>
 <button class="dash-hero personal-hero" id="personalHero" type="button"><span class="hero-copy"><strong>Personal Info</strong><small>Your personal information is private and secure.</small></span><span class="personal-art">♙<i>▣</i></span><span class="hero-arrow">›</span></button>
-<div class="dashboard-extra"><div class="stats"><div class="stat"><small>Total income</small><strong id="totalIncome">৳0</strong></div><div class="stat"><small>Total expense</small><strong id="totalExpense">৳0</strong></div><div class="stat"><small>Balance</small><strong id="balance">৳0</strong></div><div class="stat"><small>Manual Due Amount</small><strong id="manualDue">৳0</strong></div></div><div class="actions"><button class="btn" type="button" id="openMoney">Open Income &amp; Expense</button></div><h2>Upcoming reminders</h2><div id="homeReminders" class="list"></div></div>
+<footer class="dashboard-credit">Design &amp; prepared by <strong>Md Mehedi Hasan (Owner)</strong></footer>
 </section>
 <section id="personal" class="panel"><div class="card"><div class="toolbar"><h2>Personal Information</h2><button class="btn secondary small" type="button" id="personalBack">Back</button></div><p class="note">Welcome to your private Personal page. Your personal information can be added here.</p></div></section>
 <div class="pin-overlay" id="pinOverlay" hidden><div class="pin-dialog" role="dialog" aria-modal="true" aria-labelledby="pinMessage"><div class="pin-lock">♙</div><p id="pinMessage">Unauthorised access denied? Input PIN!</p><input id="personalPin" type="password" autocomplete="off" placeholder="Enter PIN" aria-label="Input PIN"><div class="pin-actions"><button type="button" class="pin-cancel" id="pinCancel">Cancel</button><button type="button" class="pin-unlock" id="pinUnlock">Unlock</button></div><p class="pin-error" id="pinError" hidden>Incorrect PIN. Access denied.</p></div></div>
