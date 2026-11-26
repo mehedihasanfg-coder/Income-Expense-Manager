@@ -142,7 +142,18 @@ main{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 <button class="dash-hero personal-hero" id="personalHero" type="button"><span class="hero-copy"><strong>Personal Info</strong><small>Your personal information is private and secure.</small></span><span class="personal-art">♙<i>▣</i></span><span class="hero-arrow">›</span></button>
 <footer class="dashboard-credit">Design &amp; prepared by <strong>Md Mehedi Hasan (Owner)</strong></footer>
 </section>
-<section id="personal" class="panel"><div class="card"><div class="toolbar"><h2>Personal Information</h2><button class="btn secondary small" type="button" id="personalBack">Back</button></div><p class="note">Welcome to your private Personal page. Your personal information can be added here.</p></div></section>
+<section id="personal" class="panel">
+<div class="card"><div class="toolbar"><h2>Personal Information</h2><button class="btn secondary small" type="button" id="personalBack">Home</button></div>
+<p class="note">Owner profile and contact information. This information is saved privately on this device.</p>
+<form id="profileForm"><div class="grid">
+<div class="field full"><label>Full Name</label><input id="profileName" placeholder="Enter your full name"></div>
+<div class="field"><label>Mobile Number</label><input id="profileMobile" inputmode="tel" placeholder="01XXXXXXXXX"></div>
+<div class="field"><label>Email Address</label><input id="profileEmail" type="email" placeholder="name@example.com"></div>
+<div class="field full"><label>Present Address</label><textarea id="profileAddress" placeholder="Enter your address"></textarea></div>
+<div class="field full"><label>Business / Profession</label><input id="profileBusiness" placeholder="Business or profession"></div>
+<div class="field full"><label>Additional Information</label><textarea id="profileNotes" placeholder="Any other useful information"></textarea></div>
+</div><div class="actions"><button class="btn" type="submit">Save Personal Information</button><button class="btn secondary" type="button" id="profileClear">Clear Form</button></div></form>
+</div></section>
 <div class="pin-overlay" id="pinOverlay" hidden><div class="pin-dialog" role="dialog" aria-modal="true" aria-labelledby="pinMessage"><div class="pin-lock">♙</div><p id="pinMessage">Unauthorised access denied? Input PIN!</p><input id="personalPin" type="password" autocomplete="off" placeholder="Enter PIN" aria-label="Input PIN"><div class="pin-actions"><button type="button" class="pin-cancel" id="pinCancel">Cancel</button><button type="button" class="pin-unlock" id="pinUnlock">Unlock</button></div><p class="pin-error" id="pinError" hidden>Incorrect PIN. Access denied.</p></div></div>
 <section id="customers" class="panel">
 <div class="card"><h2>Customer Details</h2><div class="field"><label for="customerSearch">Search Customer</label><div class="search-row"><input id="customerSearch" inputmode="search" placeholder="Enter customer mobile ID or name"><button class="btn" type="button" id="customerSearchBtn">Search</button></div></div>
@@ -188,10 +199,11 @@ main{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 <div class="field"><label>Receive Date</label><input id="wReceived" type="date" required></div>
 <div class="field"><label>Deadline Date</label><input id="wDeadline" type="date" required></div>
 <div class="field"><label>Handover Date</label><input id="wHandover" type="date"></div>
+<div class="field full"><label style="display:flex;align-items:center;gap:9px;font-size:14px"><input id="wReminder" type="checkbox" style="width:18px;height:18px"> Enable Reminder for this Job</label></div>
 </div><div class="actions"><button class="btn" type="submit">Save Job</button><button class="btn secondary" type="button" id="workClear">Clear</button></div></form><div class="actions"><button class="btn secondary" type="button" id="workCsvBtn">Download Job Details.csv</button></div></div>
 <div class="card"><h2>Job List</h2><div id="workList" class="list"></div></div>
 </section>
-<section id="reminders" class="panel"><div class="card"><h2>Job reminders</h2><p class="note">Reminders are shown in this app: 7 days before a deadline, on the deadline, and every day after the deadline until the job is marked Finished or Returned. Open the app regularly to review reminders.</p><div class="actions"><button class="btn" id="notifyBtn">Enable browser notifications</button></div><div id="reminderList" class="list"></div></div></section>
+<section id="reminders" class="panel"><div class="card"><div class="toolbar"><h2>Schedule JOBS Reminder</h2><button class="btn secondary small" type="button" id="reminderBack">Back</button></div><p class="note">Only jobs with “Enable Reminder for this Job” checked are shown. Oldest deadline appears first.</p><div id="reminderList" class="list"></div></div></section>
 <section id="backup" class="panel"><div class="card"><h2>Backup & restore</h2><p class="note">Your records are stored locally in this browser on this device. Export a backup regularly. Clearing browser data or changing device/browser can remove local records.</p><div class="actions"><button class="btn" id="exportBtn">Download backup</button><label class="btn secondary" for="importFile">Restore backup</label><input id="importFile" type="file" accept="application/json" hidden></div><div class="actions"><button class="btn danger" id="clearAll">Delete all local records</button></div></div></section>
 </main><nav class="bottom-nav" aria-label="Bottom navigation"><button type="button" data-tab="home" class="active"><span class="bottom-icon">⌂</span><span>Home</span></button><button type="button" data-tab="customers"><span class="bottom-icon">♙</span><span>Customers</span></button><button type="button" data-tab="work"><span class="bottom-icon">▤</span><span>Job Overview</span></button><button type="button" data-tab="money"><span class="bottom-icon">৳</span><span>Income &amp; Expense</span></button><button type="button" id="bottomPersonal"><span class="bottom-icon">♙</span><span>Personal Info</span></button></nav>
 
