@@ -66,7 +66,7 @@ button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12
 .search-page-head h3{margin:0;font-size:18px}
 .search-back{width:40px;height:40px;flex:0 0 40px;border:1px solid var(--line);border-radius:50%;background:var(--bg);color:var(--blue);font-size:28px;line-height:1}
 .customer-result{padding:12px;border:1px solid var(--line);border-radius:12px;margin:9px 0;background:var(--bg)}
-.customer-result strong{font-size:16px}
+.customer-result,.customer-result strong,.customer-result .meta{font-size:12pt}
 .customer-result .meta{line-height:1.65;overflow-wrap:anywhere}
 </style>
 <style>
@@ -179,19 +179,12 @@ main{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 </div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
 <form id="customerForm" novalidate><input type="hidden" id="customerEdit">
 <div class="grid">
-<div class="field"><label>Join Date</label><input id="cJoin" type="date" required></div>
-<div class="field"><label>Customer Mobile (ID)</label><input id="cMobile" inputmode="numeric" autocomplete="tel" required maxlength="12" placeholder="01710-020101"></div>
+<div class="field"><label>Qut.</label><input id="cQty" type="text" inputmode="numeric" maxlength="2" pattern="[0-9]{0,2}" autocomplete="off" placeholder="00"></div>
+<div class="field"><label>Cust. Mobile (ID)</label><input id="cMobile" inputmode="numeric" autocomplete="tel" required maxlength="12" placeholder="01710-020101"></div>
 <div class="field full"><label>Customer Name</label><input id="cName" required></div>
 <div class="field"><label>NID No.</label><input id="cNid" inputmode="numeric"></div>
 <div class="field"><label>Password</label><input id="cPassword" type="text" autocomplete="off"></div>
-<div class="field"><label>Contact amount (৳)</label><input id="cAmount" type="number" min="0" step=".01" value="0"></div>
-<div class="field"><label>1st pay amount (৳)</label><input id="cPay1" type="number" min="0" step=".01" value="0"></div>
-<div class="field"><label>2nd pay amount (৳)</label><input id="cPay2" type="number" min="0" step=".01" value="0"></div>
-<div class="field"><label>3rd pay amount (৳)</label><input id="cPay3" type="number" min="0" step=".01" value="0"></div>
-<div class="field"><label>Taken Date</label><input id="cTaken" type="date"></div>
-<div class="field"><label>Deadlines</label><input id="cDeadline" type="date"></div>
 <div class="field full"><label>Contact Details</label><textarea id="cContactDetails" placeholder="Address, phone, or other contact details"></textarea></div>
-<div class="field full"><label>Net Payment (৳)</label><input id="cNet" readonly value="0.00"></div>
 </div><div class="actions"><button class="btn" type="submit">Save</button><button class="btn secondary" type="button" id="customerClear">Clear</button></div></form><div class="actions"><button class="btn secondary" type="button" id="customerCsvBtn">Download Customer.csv</button></div></div>
 <div class="card"><h2>Saved Customers</h2><div id="customerList" class="list"></div></div>
 </section>
