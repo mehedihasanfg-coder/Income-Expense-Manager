@@ -45,7 +45,7 @@ function render(){
  $('periodSummary').innerHTML='<div class="period-row"><span class="period-icon">▦</span><div class="period-copy"><strong>Last 7 days</strong><span><b class="income">Income: '+money(sum('Income',x=>x.date>=weekStart))+'</b> &nbsp; · &nbsp; <b class="expense">Expense: '+money(sum('Expense',x=>x.date>=weekStart))+'</b></span></div><span class="hero-arrow" style="color:var(--muted)">›</span></div><div class="period-row"><span class="period-icon">▣</span><div class="period-copy"><strong>This month</strong><span><b class="income">Income: '+money(sum('Income',x=>x.date.startsWith(month)))+'</b> &nbsp; · &nbsp; <b class="expense">Expense: '+money(sum('Expense',x=>x.date.startsWith(month)))+'</b></span></div><span class="hero-arrow" style="color:var(--muted)">›</span></div>';
  const rem=reminders();
  const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q),cs=db.customers.filter(c=>!q||String(c.name||'').toLowerCase().includes(q)||(qd.length>0&&digits(c.mobile).includes(qd)));
- $('customerList').innerHTML=cs.length?cs.map(c=>item(esc(c.name)+' · '+esc(c.mobile),'Join '+esc(c.joinDate||'—')+' · Contact '+money(c.amount)+' · Net due '+money(c.net)+' · Deadline '+esc(c.deadline||'—'),act('cedit',digits(c.mobile),'Edit')+act('cdel',digits(c.mobile),'Delete','danger'))).join(''):'<div class="empty">No customer records yet.</div>';
+ $('customerList').innerHTML=cs.length?cs.map(c=>item(esc(c.name)+' · '+esc(c.mobile),'Qut.: '+esc(c.qty||'—'),act('cedit',digits(c.mobile),'Edit')+act('cdel',digits(c.mobile),'Delete','danger'))).join(''):'<div class="empty">No customer records yet.</div>';
  const mf=$('moneyFilter').value,ms=db.money.filter(x=>mf==='All'||x.type===mf).slice().reverse();
  $('moneyList').innerHTML=ms.length?ms.map(x=>{const extra=x.customerMobile?' · '+esc(x.customerMobile)+' · '+esc(x.personName||''):x.caseNo?' · Case '+esc(x.caseNo)+' · Investigation '+esc(x.investigationDate||''):'';return item('<span class="'+(x.type==='Income'?'good':'bad')+'">'+esc(x.type)+'</span> · '+money(x.amount),esc(x.category)+extra+' · '+esc(x.date)+' · '+esc(x.description),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))}).join(''):'<div class="empty">No transactions yet.</div>';
  $('workList').innerHTML=db.works.slice().reverse().map(w=>item(esc(formatMobile(w.id))+' · '+esc(w.customer),'Job: '+esc(w.description)+' · Deadline '+esc(w.deadline)+' · Handover '+esc(w.handover||'—')+' · <b>'+esc(status(w))+'</b>',act('wedit',w.id,'Edit')+act('wdel',w.id,'Delete','danger'))).join('')||'<div class="empty">No job records yet.</div>';
@@ -54,24 +54,24 @@ function render(){
  refreshJobOptions($('wId').value);
 }
 function clearForm(form,hidden){form.reset();$(hidden).value=''}
-function updateNet(){$('cNet').value=(Number($('cAmount').value||0)-Number($('cPay1').value||0)-Number($('cPay2').value||0)-Number($('cPay3').value||0)).toFixed(2)}
-['cPay1','cPay2','cPay3','cAmount'].forEach(id=>$(id).oninput=updateNet);
+$('cQty').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,2)});
 $('cMobile').addEventListener('input',e=>{const pos=e.target.selectionStart,old=e.target.value;e.target.value=formatMobile(old);try{e.target.setSelectionRange(e.target.value.length,e.target.value.length)}catch{}});
 $('customerForm').onsubmit=e=>{
  e.preventDefault();const mobile=formatMobile($('cMobile').value),key=$('customerEdit').value;
  if(!validMobile(mobile)){alert('Enter a valid 11-digit Bangladesh mobile number starting with 01. Example: 01710-020101');$('cMobile').focus();return}
  const existing=db.customers.find(c=>digits(c.mobile)===digits(mobile));
  if(existing&&digits(key)!==digits(mobile)){alert('This Customer Mobile (ID) already exists.');return}
- const c={mobile,joinDate:$('cJoin').value||today(),name:$('cName').value.trim(),nid:$('cNid').value.trim(),password:$('cPassword').value,amount:num($('cAmount').value),p1:num($('cPay1').value),p2:num($('cPay2').value),p3:num($('cPay3').value),net:Number($('cNet').value)||0,taken:$('cTaken').value,deadline:$('cDeadline').value,contactDetails:$('cContactDetails').value};
+ const previous=db.customers.find(x=>digits(x.mobile)===digits(key||mobile))||{};
+ const c={...previous,mobile,qty:$('cQty').value.replace(/\D/g,'').slice(0,2),name:$('cName').value.trim(),nid:$('cNid').value.trim(),password:$('cPassword').value,contactDetails:$('cContactDetails').value};
  if(!c.name){alert('Enter Customer Name.');return}
  if(key&&digits(key)!==digits(mobile)){
   const old=digits(key);db.customers=db.customers.filter(x=>digits(x.mobile)!==old);
   db.works=db.works.map(w=>digits(w.id)===old?{...w,id:digits(mobile),customer:c.name}:w);
  }
  const i=db.customers.findIndex(x=>digits(x.mobile)===digits(mobile));if(i<0)db.customers.push(c);else db.customers[i]=c;
- clearForm($('customerForm'),'customerEdit');$('cJoin').value=today();$('cNet').value='0.00';save();
+ clearForm($('customerForm'),'customerEdit');save();
 };
-$('customerClear').onclick=()=>{clearForm($('customerForm'),'customerEdit');$('cJoin').value=today();$('cNet').value='0.00';$('customerSearch').value='';render()};
+$('customerClear').onclick=()=>{clearForm($('customerForm'),'customerEdit');$('customerSearch').value='';render()};
 const customerCategories=['Mutation','Khatian','Dhokila/ ldtax'];
 const caseCategories=['M.P. Case','150 Dhara Case','S.F. Files'];
 function updateMoneyCategoryFields(){
@@ -112,7 +112,7 @@ document.addEventListener('click',e=>{
  if(action==='wdel'&&confirm('Delete this job record?'))db.works=db.works.filter(x=>digits(x.id)!==digits(id));
  if(action==='cedit'){
   const c=db.customers.find(x=>digits(x.mobile)===digits(id));if(!c)return;$('customerEdit').value=digits(c.mobile);
-  [['cJoin','joinDate'],['cMobile','mobile'],['cName','name'],['cNid','nid'],['cPassword','password'],['cAmount','amount'],['cPay1','p1'],['cPay2','p2'],['cPay3','p3'],['cTaken','taken'],['cDeadline','deadline'],['cContactDetails','contactDetails']].forEach(([a,k])=>$(a).value=c[k]??'');$('cNet').value=Number(c.net||0).toFixed(2);
+  [['cQty','qty'],['cMobile','mobile'],['cName','name'],['cNid','nid'],['cPassword','password'],['cContactDetails','contactDetails']].forEach(([a,k])=>$(a).value=c[k]??'');
   document.querySelector('[data-tab="customers"]').click();
  }
  if(action==='medit'){const x=db.money.find(x=>x.id===id);if(!x)return;$('moneyEdit').value=id;const catSelect=$('mCategory');if(x.category&&!Array.from(catSelect.options).some(o=>o.value===x.category)){const legacy=document.createElement('option');legacy.value=x.category;legacy.textContent='Existing: '+x.category;catSelect.appendChild(legacy)}[['mType','type'],['mCategory','category'],['mAmount','amount'],['mCustomerMobile','customerMobile'],['mPersonName','personName'],['mCaseNo','caseNo'],['mInvestigationDate','investigationDate'],['mDate','date'],['mDescription','description']].forEach(([a,k])=>$(a).value=x[k]??'');updateMoneyCategoryFields();document.querySelector('[data-tab="money"]').click()}
@@ -127,8 +127,8 @@ function downloadCsv(filename,headers,rows){
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 $('customerCsvBtn').onclick=()=>downloadCsv('Customer.csv',
- ['Customer Mobile ID','Join Date','Customer Name','NID No','Contact Amount','1st Pay','2nd Pay','3rd Pay','Net Payment','Taken Date','Deadline','Contact Details'],
- db.customers.map(x=>[x.mobile,x.joinDate,x.name,x.nid,x.amount,x.p1,x.p2,x.p3,x.net,x.taken,x.deadline,x.contactDetails]));
+ ['Qut.','Cust. Mobile (ID)','Customer Name','NID No.','Password','Contact Details'],
+ db.customers.map(x=>[x.qty||'',x.mobile,x.name,x.nid,x.password,x.contactDetails]));
 $('moneyCsvBtn').onclick=()=>downloadCsv('Income & Expense.csv',
  ['Record ID','Type','Category','Amount','Customer Mobile','Person Name','Case No.','Investigation Date','Date','Description'],
  db.money.map(x=>[x.id,x.type,x.category,x.amount,x.customerMobile||'',x.personName||'',x.caseNo||'',x.investigationDate||'',x.date,x.description]));
@@ -182,7 +182,7 @@ function openCustomerSearch(){
  const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q);
  if(!q){alert('Enter a customer name or mobile number to search.');$('customerSearch').focus();return}
  const matches=db.customers.filter(c=>String(c.name||'').toLowerCase().includes(q)||(qd.length>0&&digits(c.mobile).includes(qd)));
- $('customerSearchResults').innerHTML=matches.length?matches.map(c=>'<div class="customer-result"><strong>'+esc(c.name)+'</strong><div class="meta">Customer Mobile (ID): '+esc(c.mobile)+'<br>Join Date: '+esc(c.joinDate||'—')+'<br>NID No.: '+esc(c.nid||'—')+'<br>Contact Amount: '+money(c.amount)+'<br>1st Pay: '+money(c.p1)+' · 2nd Pay: '+money(c.p2)+' · 3rd Pay: '+money(c.p3)+'<br>Net Payment: '+money(c.net)+'<br>Taken Date: '+esc(c.taken||'—')+'<br>Deadline: '+esc(c.deadline||'—')+'<br>Contact Details: '+esc(c.contactDetails||'—')+'</div><div class="actions">'+act('cedit',digits(c.mobile),'Edit')+'</div></div>').join(''):'<div class="empty">No matching customer found.</div>';
+ $('customerSearchResults').innerHTML=matches.length?matches.map(c=>'<div class="customer-result"><strong>'+esc(c.name)+'</strong><div class="meta">Qut.: '+esc(c.qty||'—')+'<br>Cust. Mobile (ID): '+esc(c.mobile)+'<br>NID No.: '+esc(c.nid||'—')+'<br>Password: '+esc(c.password||'—')+'<br>Contact Details: '+esc(c.contactDetails||'—')+'</div><div class="actions">'+act('cedit',digits(c.mobile),'Edit')+'</div></div>').join(''):'<div class="empty">No matching customer found.</div>';
  $('customerForm').hidden=true;$('customerList').parentElement.hidden=true;$('customerCsvBtn').parentElement.hidden=true;
  $('customerSearchPage').hidden=false;$('customerSearchPage').classList.remove('active');void $('customerSearchPage').offsetWidth;$('customerSearchPage').classList.add('active');
 }
@@ -199,5 +199,5 @@ $('exportBtn').onclick=()=>{const a=document.createElement('a'),blob=new Blob([J
 $('importFile').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const x=JSON.parse(await f.text());if(!Array.isArray(x.customers)||!Array.isArray(x.money)||!Array.isArray(x.works))throw Error();if(confirm('Replace current records with this backup?')){db=x;save();alert('Backup restored.')}}catch{alert('Invalid backup file.')}e.target.value=''};
 $('clearAll').onclick=()=>{if(confirm('Permanently delete all records stored in this browser?')){db={customers:[],money:[],works:[]};save()}};
 $('notifyBtn').onclick=async()=>{if(!('Notification'in window)){alert('Notifications are not supported by this browser.');return}const p=await Notification.requestPermission();alert(p==='granted'?'Browser notifications enabled. Open the app to review reminders.':'Notification permission was not granted.')};
-$('cJoin').value=$('cTaken').value=$('mDate').value=$('wReceived').value=today();refreshJobOptions();render();
+$('mDate').value=$('wReceived').value=today();refreshJobOptions();render();
 })();
