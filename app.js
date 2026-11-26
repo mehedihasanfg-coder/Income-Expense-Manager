@@ -41,10 +41,11 @@ function render(){
  const inc=db.money.filter(x=>x.type==='Income').reduce((a,x)=>a+x.amount,0),out=db.money.filter(x=>x.type==='Expense').reduce((a,x)=>a+x.amount,0);
  $('totalIncome').textContent=money(inc);$('totalExpense').textContent=money(out);$('balance').textContent=money(inc-out);
  $('manualDue').textContent=money(db.customers.reduce((a,c)=>a+Math.max(0,Number(c.net)||0),0));
- $('pendingCount').textContent=db.works.filter(w=>status(w)==='Pending').length;$('dueCount').textContent=db.works.filter(w=>status(w)==='Due').length;$('finishedCount').textContent=db.works.filter(w=>status(w)==='Finished').length;
+ $('pendingCount').textContent=db.works.filter(w=>status(w)==='Pending').length;$('dueCount').textContent=db.works.filter(w=>status(w)==='Due').length;
+ $('entryCount').textContent=db.works.filter(w=>w.status==='Entry level').length;$('appliedCount').textContent=db.works.filter(w=>w.status==='Applied').length;$('approvedCount').textContent=db.works.filter(w=>w.status==='Approved/DCR').length;$('handoverCount').textContent=db.works.filter(w=>Boolean(w.handover)||w.status==='Handover').length;
  const now=new Date(),week=new Date(now);week.setDate(now.getDate()-6);const weekStart=[week.getFullYear(),String(week.getMonth()+1).padStart(2,'0'),String(week.getDate()).padStart(2,'0')].join('-'),month=today().slice(0,7);
  const sum=(type,fn)=>db.money.filter(x=>x.type===type&&fn(x)).reduce((a,x)=>a+x.amount,0);
- $('periodSummary').innerHTML='<p>Last 7 days — Income: <b>'+money(sum('Income',x=>x.date>=weekStart))+'</b> · Expense: <b>'+money(sum('Expense',x=>x.date>=weekStart))+'</b></p><p>This month — Income: <b>'+money(sum('Income',x=>x.date.startsWith(month)))+'</b> · Expense: <b>'+money(sum('Expense',x=>x.date.startsWith(month)))+'</b></p>';
+ $('periodSummary').innerHTML='<div class="period-row"><span class="period-icon">▦</span><div class="period-copy"><strong>Last 7 days</strong><span><b class="income">Income: '+money(sum('Income',x=>x.date>=weekStart))+'</b> &nbsp; · &nbsp; <b class="expense">Expense: '+money(sum('Expense',x=>x.date>=weekStart))+'</b></span></div><span class="hero-arrow" style="color:var(--muted)">›</span></div><div class="period-row"><span class="period-icon">▣</span><div class="period-copy"><strong>This month</strong><span><b class="income">Income: '+money(sum('Income',x=>x.date.startsWith(month)))+'</b> &nbsp; · &nbsp; <b class="expense">Expense: '+money(sum('Expense',x=>x.date.startsWith(month)))+'</b></span></div><span class="hero-arrow" style="color:var(--muted)">›</span></div>';
  const rem=reminders();
  $('homeReminders').innerHTML=rem.length?rem.slice(0,5).map(r=>'<div class="item"><div><strong>'+esc(r.w.customer)+'</strong><div class="meta">'+esc(r.msg)+' · '+esc(formatMobile(r.w.id))+'</div></div></div>').join(''):'<div class="empty">No upcoming or overdue reminders.</div>';
  const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q),cs=db.customers.filter(c=>!q||String(c.name||'').toLowerCase().includes(q)||(qd.length>0&&digits(c.mobile).includes(qd)));
@@ -141,7 +142,7 @@ $('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
 function closeMenu(){ $('sideMenu').classList.remove('open');$('menuOverlay').classList.remove('open');$('sideMenu').setAttribute('aria-hidden','true');$('menuOpen').setAttribute('aria-expanded','false') }
 function openMenu(){ $('sideMenu').classList.add('open');$('menuOverlay').classList.add('open');$('sideMenu').setAttribute('aria-hidden','false');$('menuOpen').setAttribute('aria-expanded','true') }
 $('menuOpen').onclick=openMenu;$('menuClose').onclick=closeMenu;$('menuOverlay').onclick=closeMenu;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
-const pageOrder=['home','customers','work','money','reminders','backup'];
+const pageOrder=['home','customers','work','money','reminders','backup','personal'];
 const pageNames=['Dashboard','Customer','Job Details','Income & Expense','Reminders','Backup'];
 function showPage(tab){
  const index=pageOrder.indexOf(tab);if(index<0)return;
@@ -154,6 +155,15 @@ document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>showPage(b.data
 $('previousPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.contains('active'));if(i>0)showPage(pageOrder[i-1])};
 $('nextPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.contains('active'));if(i>=0&&i<pageOrder.length-1)showPage(pageOrder[i+1])};
 $('openMoney').onclick=()=>showPage('money');
+$('scheduleHero').onclick=()=>showPage('reminders');$('viewAllJobs').onclick=()=>showPage('work');
+$('businessHero').onclick=()=>showPage('money');
+document.querySelectorAll('[data-job-filter]').forEach(b=>b.onclick=()=>showPage('work'));
+$('personalHero').onclick=()=>{ $('pinOverlay').hidden=false;$('personalPin').value='';$('pinError').hidden=true;setTimeout(()=>$('personalPin').focus(),40) };
+function closePin(){ $('pinOverlay').hidden=true;$('personalPin').value='';$('pinError').hidden=true }
+$('pinCancel').onclick=closePin;
+$('pinUnlock').onclick=()=>{const pin=$('personalPin').value;if(!pin)return;if(pin==='Rayat&Raika'){closePin();showPage('personal')}else{$('pinError').hidden=false;$('personalPin').focus();$('personalPin').select()}};
+$('personalPin').onkeydown=e=>{if(e.key==='Enter')$('pinUnlock').click();if(e.key==='Escape')closePin()};
+$('personalBack').onclick=()=>showPage('home');
 showPage('home');
 function openCustomerSearch(){
  const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q);
