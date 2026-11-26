@@ -38,16 +38,12 @@ function refreshJobOptions(selected=''){
  $('wCustomer').value=customerName(s.value);
 }
 function render(){
- const inc=db.money.filter(x=>x.type==='Income').reduce((a,x)=>a+x.amount,0),out=db.money.filter(x=>x.type==='Expense').reduce((a,x)=>a+x.amount,0);
- $('totalIncome').textContent=money(inc);$('totalExpense').textContent=money(out);$('balance').textContent=money(inc-out);
- $('manualDue').textContent=money(db.customers.reduce((a,c)=>a+Math.max(0,Number(c.net)||0),0));
  $('pendingCount').textContent=db.works.filter(w=>status(w)==='Pending').length;$('dueCount').textContent=db.works.filter(w=>status(w)==='Due').length;
  $('entryCount').textContent=db.works.filter(w=>w.status==='Entry level').length;$('appliedCount').textContent=db.works.filter(w=>w.status==='Applied').length;$('approvedCount').textContent=db.works.filter(w=>w.status==='Approved/DCR').length;$('handoverCount').textContent=db.works.filter(w=>Boolean(w.handover)||w.status==='Handover').length;
  const now=new Date(),week=new Date(now);week.setDate(now.getDate()-6);const weekStart=[week.getFullYear(),String(week.getMonth()+1).padStart(2,'0'),String(week.getDate()).padStart(2,'0')].join('-'),month=today().slice(0,7);
  const sum=(type,fn)=>db.money.filter(x=>x.type===type&&fn(x)).reduce((a,x)=>a+x.amount,0);
  $('periodSummary').innerHTML='<div class="period-row"><span class="period-icon">▦</span><div class="period-copy"><strong>Last 7 days</strong><span><b class="income">Income: '+money(sum('Income',x=>x.date>=weekStart))+'</b> &nbsp; · &nbsp; <b class="expense">Expense: '+money(sum('Expense',x=>x.date>=weekStart))+'</b></span></div><span class="hero-arrow" style="color:var(--muted)">›</span></div><div class="period-row"><span class="period-icon">▣</span><div class="period-copy"><strong>This month</strong><span><b class="income">Income: '+money(sum('Income',x=>x.date.startsWith(month)))+'</b> &nbsp; · &nbsp; <b class="expense">Expense: '+money(sum('Expense',x=>x.date.startsWith(month)))+'</b></span></div><span class="hero-arrow" style="color:var(--muted)">›</span></div>';
  const rem=reminders();
- $('homeReminders').innerHTML=rem.length?rem.slice(0,5).map(r=>'<div class="item"><div><strong>'+esc(r.w.customer)+'</strong><div class="meta">'+esc(r.msg)+' · '+esc(formatMobile(r.w.id))+'</div></div></div>').join(''):'<div class="empty">No upcoming or overdue reminders.</div>';
  const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q),cs=db.customers.filter(c=>!q||String(c.name||'').toLowerCase().includes(q)||(qd.length>0&&digits(c.mobile).includes(qd)));
  $('customerList').innerHTML=cs.length?cs.map(c=>item(esc(c.name)+' · '+esc(c.mobile),'Join '+esc(c.joinDate||'—')+' · Contact '+money(c.amount)+' · Net due '+money(c.net)+' · Deadline '+esc(c.deadline||'—'),act('cedit',digits(c.mobile),'Edit')+act('cdel',digits(c.mobile),'Delete','danger'))).join(''):'<div class="empty">No customer records yet.</div>';
  const mf=$('moneyFilter').value,ms=db.money.filter(x=>mf==='All'||x.type===mf).slice().reverse();
