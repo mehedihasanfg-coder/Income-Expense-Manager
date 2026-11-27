@@ -35,7 +35,7 @@ function amountDigits(value){
  let s=String(value??'').replace(/৳|BDT|\/-/g,'').replace(/,/g,'').replace(/[^0-9.]/g,'');
  const p=s.split('.');return p[0].slice(0,8)+(p.length>1?'.'+p.slice(1).join('').slice(0,2):'');
 }
-function amountNumber(value){const n=Number(amountDigits(value));return Number.isFinite(n)?n:0}
+function amountNumber(value){const raw=amountDigits(value);if(!raw||raw==='.')return '';const n=Number(raw);return Number.isFinite(n)?n:''}
 function formatTaka(value){
  const s=amountDigits(value);if(!s)return '';
  const [whole,decimal]=s.split('.');const grouped=whole.replace(/\B(?=(\d{2})+(\d{1})?$)/g,',');
