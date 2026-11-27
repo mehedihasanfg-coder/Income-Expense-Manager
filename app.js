@@ -31,6 +31,22 @@ function reminders(){let out=[];db.works.forEach(w=>{if(['Finished','Returned'].
 function item(title,sub,actions){return '<div class="item"><div><strong>'+title+'</strong><div class="meta">'+sub+'</div></div><div class="actions">'+actions+'</div></div>'}
 function act(type,id,label,cls='secondary'){return '<button class="btn small '+cls+'" data-action="'+type+'" data-id="'+esc(id)+'">'+label+'</button>'}
 function customerName(id){let c=db.customers.find(c=>digits(c.mobile)===digits(id));return c?c.name:''}
+function amountDigits(value){
+ let s=String(value??'').replace(/৳|BDT|\/-/g,'').replace(/,/g,'').replace(/[^0-9.]/g,'');
+ const p=s.split('.');return p[0].slice(0,8)+(p.length>1?'.'+p.slice(1).join('').slice(0,2):'');
+}
+function amountNumber(value){const n=Number(amountDigits(value));return Number.isFinite(n)?n:0}
+function formatTaka(value){
+ const s=amountDigits(value);if(!s)return '';
+ const [whole,decimal]=s.split('.');const grouped=whole.replace(/\B(?=(\d{2})+(\d{1})?$)/g,',');
+ return grouped+(decimal!==undefined?'.'+decimal:'')+'/- ৳';
+}
+['wContactAmount','wAmount','wTotalPayingAmount'].forEach(id=>{
+ const field=$(id);
+ field.addEventListener('focus',()=>{field.value=amountDigits(field.value)});
+ field.addEventListener('input',()=>{const raw=amountDigits(field.value);const [whole,decimal]=raw.split('.');field.value=whole.replace(/\B(?=(\d{2})+(\d{1})?$)/g,',')+(decimal!==undefined?'.'+decimal:'')});
+ field.addEventListener('blur',()=>{field.value=formatTaka(field.value)});
+});
 function refreshJobOptions(selected=''){
  const s=$('wId'),old=selected||s.value;
  s.innerHTML='<option value="">Select Mobile No.</option>'+db.customers.map(c=>'<option value="'+digits(c.mobile)+'">'+esc(c.mobile)+'</option>').join('');
@@ -106,7 +122,7 @@ $('customerRequiredOk').onclick=()=>{$('customerRequiredModal').hidden=true;show
 $('workForm').onsubmit=e=>{
  e.preventDefault();const id=digits($('wId').value),customer=customerName(id);
  if(!validMobile(id)||!customer){alert('Select a saved Customer Mobile (ID) first.');return}
- const w={id,customer,qty:$('wQty').value,category:$('wCategory').value,description:$('wDescription').value.trim(),received:$('wReceived').value,deadline:$('wDeadline').value,handover:$('wHandover').value,status:$('wStatus').value,reminder:$('wReminder').checked};
+ const w={id,customer,qty:$('wQty').value,category:$('wCategory').value,description:$('wDescription').value.trim(),contactAmount:amountNumber($('wContactAmount').value),received:$('wReceived').value,eip:$('wEip').value,amount:amountNumber($('wAmount').value),deadline:$('wDeadline').value,handover:$('wHandover').value,totalPayingAmount:amountNumber($('wTotalPayingAmount').value),status:$('wStatus').value,reminder:$('wReminder').checked};
  if(!w.description){alert('Enter Job Description.');return}
  const i=db.works.findIndex(x=>digits(x.id)===id);if(i<0)db.works.push(w);else db.works[i]=w;
  clearForm($('workForm'),'workEdit');$('wReceived').value=today();refreshJobOptions();save();
@@ -123,7 +139,7 @@ document.addEventListener('click',e=>{
   document.querySelector('[data-tab="customers"]').click();
  }
  if(action==='medit'){const x=db.money.find(x=>x.id===id);if(!x)return;$('moneyEdit').value=id;const catSelect=$('mCategory');if(x.category&&!Array.from(catSelect.options).some(o=>o.value===x.category)){const legacy=document.createElement('option');legacy.value=x.category;legacy.textContent='Existing: '+x.category;catSelect.appendChild(legacy)}[['mType','type'],['mCategory','category'],['mAmount','amount'],['mCustomerMobile','customerMobile'],['mPersonName','personName'],['mCaseNo','caseNo'],['mInvestigationDate','investigationDate'],['mDate','date'],['mDescription','description']].forEach(([a,k])=>$(a).value=x[k]??'');updateMoneyCategoryFields();document.querySelector('[data-tab="money"]').click()}
- if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wQty','qty'],['wCategory','category'],['wDescription','description'],['wReceived','received'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status']].forEach(([a,k])=>$(a).value=w[k]||'');$('wReminder').checked=w.reminder===true;document.querySelector('[data-tab="work"]').click()}
+ if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wQty','qty'],['wCategory','category'],['wDescription','description'],['wReceived','received'],['wEip','eip'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status']].forEach(([a,k])=>$(a).value=w[k]||'');[['wContactAmount','contactAmount'],['wAmount','amount'],['wTotalPayingAmount','totalPayingAmount']].forEach(([a,k])=>$(a).value=formatTaka(w[k]));$('wReminder').checked=w.reminder===true;document.querySelector('[data-tab="work"]').click()}
  save();
 });
 
@@ -140,8 +156,8 @@ $('moneyCsvBtn').onclick=()=>downloadCsv('Income & Expense.csv',
  ['Record ID','Type','Category','Amount','Customer Mobile','Person Name','Case No.','Investigation Date','Date','Description'],
  db.money.map(x=>[x.id,x.type,x.category,x.amount,x.customerMobile||'',x.personName||'',x.caseNo||'',x.investigationDate||'',x.date,x.description]));
 $('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
- ['Job ID','Customer Name','Status','Job Description','Receive Date','Deadline Date','Handover Date','Reminder'],
- db.works.map(x=>[x.id,x.customer,x.status,x.description,x.received,x.deadline,x.handover,x.reminder?'Yes':'No']));
+ ['Job ID','Customer Name','Status','Job Description','Contact Amount','Received Date','EIP','Amount','Datelines','Handover','Total Paying Amount','Reminder'],
+ db.works.map(x=>[x.id,x.customer,x.status,x.description,x.contactAmount??'',x.received,x.eip||'',x.amount??'',x.deadline,x.handover,x.totalPayingAmount??'',x.reminder?'Yes':'No']));
 
 function closeMenu(){ $('sideMenu').classList.remove('open');$('menuOverlay').classList.remove('open');$('sideMenu').setAttribute('aria-hidden','true');$('menuOpen').setAttribute('aria-expanded','false') }
 function openMenu(){ $('sideMenu').classList.add('open');$('menuOverlay').classList.add('open');$('sideMenu').setAttribute('aria-hidden','false');$('menuOpen').setAttribute('aria-expanded','true') }
