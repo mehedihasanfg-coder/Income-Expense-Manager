@@ -33,9 +33,11 @@ function act(type,id,label,cls='secondary'){return '<button class="btn small '+c
 function customerName(id){let c=db.customers.find(c=>digits(c.mobile)===digits(id));return c?c.name:''}
 function refreshJobOptions(selected=''){
  const s=$('wId'),old=selected||s.value;
- s.innerHTML='<option value="">Select Customer Mobile (ID)</option>'+db.customers.map(c=>'<option value="'+digits(c.mobile)+'">'+esc(c.mobile)+'</option>').join('');
+ s.innerHTML='<option value="">Select Mobile No.</option>'+db.customers.map(c=>'<option value="'+digits(c.mobile)+'">'+esc(c.mobile)+'</option>').join('');
  if(old&&[...s.options].some(o=>o.value===digits(old)))s.value=digits(old);
- $('wCustomer').value=customerName(s.value);
+ const c=db.customers.find(x=>digits(x.mobile)===digits(s.value));
+ $('wCustomer').value=c?c.name:'';
+ $('wQty').value=c?(c.qty||''):'';
 }
 function render(){
  $('pendingCount').textContent=db.works.filter(w=>status(w)==='Pending').length;$('dueCount').textContent=db.works.filter(w=>status(w)==='Due').length;
@@ -95,11 +97,16 @@ $('moneyForm').onsubmit=e=>{
  clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today();updateMoneyCategoryFields();save()
 };
 $('moneyClear').onclick=()=>{clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today();updateMoneyCategoryFields()};
-$('wId').onchange=()=>{$('wCustomer').value=customerName($('wId').value)};
+$('wId').onchange=()=>{
+ const c=db.customers.find(x=>digits(x.mobile)===digits($('wId').value));
+ if(!c){$('wCustomer').value='';$('wQty').value='';$('customerRequiredModal').hidden=false;return}
+ $('wCustomer').value=c.name||'';$('wQty').value=c.qty||'';
+};
+$('customerRequiredOk').onclick=()=>{$('customerRequiredModal').hidden=true;showPage('customers')};
 $('workForm').onsubmit=e=>{
  e.preventDefault();const id=digits($('wId').value),customer=customerName(id);
  if(!validMobile(id)||!customer){alert('Select a saved Customer Mobile (ID) first.');return}
- const w={id,customer,description:$('wDescription').value.trim(),received:$('wReceived').value,deadline:$('wDeadline').value,handover:$('wHandover').value,status:$('wStatus').value,reminder:$('wReminder').checked};
+ const w={id,customer,qty:$('wQty').value,category:$('wCategory').value,description:$('wDescription').value.trim(),received:$('wReceived').value,deadline:$('wDeadline').value,handover:$('wHandover').value,status:$('wStatus').value,reminder:$('wReminder').checked};
  if(!w.description){alert('Enter Job Description.');return}
  const i=db.works.findIndex(x=>digits(x.id)===id);if(i<0)db.works.push(w);else db.works[i]=w;
  clearForm($('workForm'),'workEdit');$('wReceived').value=today();refreshJobOptions();save();
@@ -116,7 +123,7 @@ document.addEventListener('click',e=>{
   document.querySelector('[data-tab="customers"]').click();
  }
  if(action==='medit'){const x=db.money.find(x=>x.id===id);if(!x)return;$('moneyEdit').value=id;const catSelect=$('mCategory');if(x.category&&!Array.from(catSelect.options).some(o=>o.value===x.category)){const legacy=document.createElement('option');legacy.value=x.category;legacy.textContent='Existing: '+x.category;catSelect.appendChild(legacy)}[['mType','type'],['mCategory','category'],['mAmount','amount'],['mCustomerMobile','customerMobile'],['mPersonName','personName'],['mCaseNo','caseNo'],['mInvestigationDate','investigationDate'],['mDate','date'],['mDescription','description']].forEach(([a,k])=>$(a).value=x[k]??'');updateMoneyCategoryFields();document.querySelector('[data-tab="money"]').click()}
- if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wDescription','description'],['wReceived','received'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status']].forEach(([a,k])=>$(a).value=w[k]||'');$('wReminder').checked=w.reminder===true;document.querySelector('[data-tab="work"]').click()}
+ if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wQty','qty'],['wCategory','category'],['wDescription','description'],['wReceived','received'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status']].forEach(([a,k])=>$(a).value=w[k]||'');$('wReminder').checked=w.reminder===true;document.querySelector('[data-tab="work"]').click()}
  save();
 });
 
