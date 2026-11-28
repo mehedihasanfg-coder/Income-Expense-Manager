@@ -55,9 +55,34 @@ function refreshJobOptions(selected=''){
  $('wCustomer').value=c?c.name:'';
  $('wQty').value=c?(c.qty||''):'';
 }
+let dashboardJobFilter='';
+function dashboardJobs(group){
+ return db.works.filter(w=>{
+  const selected=String(w.status||'').trim().toLowerCase();
+  if(group==='Entry Level')return selected==='entry level';
+  if(group==='Applied')return selected==='applied';
+  if(group==='Approved/DCR')return selected==='approved/dcr';
+  if(group==='Handover')return selected==='handover';
+  if(selected==='approved/dcr')return false;
+  const contact=Number(w.contactAmount),paid=Number(w.totalPayingAmount);
+  if(!Number.isFinite(contact)||contact<=0||!Number.isFinite(paid)||paid<0)return false;
+  if(group==='Pending')return paid<=contact*0.50;
+  if(group==='OverDues')return paid>contact*0.50&&paid<=contact*0.75;
+  return false;
+ });
+}
+function renderDashboardJobResults(){
+ const box=$('dashboardJobResults');
+ if(!dashboardJobFilter){box.hidden=true;return}
+ const jobs=dashboardJobs(dashboardJobFilter).slice().reverse();
+ $('dashboardJobTitle').textContent=dashboardJobFilter+' Jobs ('+jobs.length+')';
+ $('dashboardJobList').innerHTML=jobs.length?jobs.map(w=>item(esc(formatMobile(w.id))+' · '+esc(w.customer),'Contact: '+money(Number(w.contactAmount)||0)+' · Total Paying: '+money(Number(w.totalPayingAmount)||0)+' · '+esc(w.category||'')+' · '+esc(w.description||''),act('wedit',w.id,'Edit')+act('wdel',w.id,'Delete','danger'))).join(''):'<div class="empty">No matching jobs found.</div>';
+ box.hidden=false;
+}
 function render(){
- $('pendingCount').textContent=db.works.filter(w=>status(w)==='Pending').length;$('dueCount').textContent=db.works.filter(w=>status(w)==='Due').length;
- $('entryCount').textContent=db.works.filter(w=>w.status==='Entry level').length;$('appliedCount').textContent=db.works.filter(w=>w.status==='Applied').length;$('approvedCount').textContent=db.works.filter(w=>w.status==='Approved/DCR').length;$('handoverCount').textContent=db.works.filter(w=>Boolean(w.handover)||w.status==='Handover').length;
+ $('pendingCount').textContent=dashboardJobs('Pending').length;$('dueCount').textContent=dashboardJobs('OverDues').length;
+ $('entryCount').textContent=dashboardJobs('Entry Level').length;$('appliedCount').textContent=dashboardJobs('Applied').length;$('approvedCount').textContent=dashboardJobs('Approved/DCR').length;$('handoverCount').textContent=dashboardJobs('Handover').length;
+ renderDashboardJobResults();
  const now=new Date(),week=new Date(now);week.setDate(now.getDate()-6);const weekStart=[week.getFullYear(),String(week.getMonth()+1).padStart(2,'0'),String(week.getDate()).padStart(2,'0')].join('-'),month=today().slice(0,7);
  const sum=(type,fn)=>db.money.filter(x=>x.type===type&&fn(x)).reduce((a,x)=>a+x.amount,0);
  $('periodSummary').innerHTML='<div class="period-row"><span class="period-icon">▦</span><div class="period-copy"><strong>Last 7 days</strong><span><b class="income">Income: '+money(sum('Income',x=>x.date>=weekStart))+'</b> &nbsp; · &nbsp; <b class="expense">Expense: '+money(sum('Expense',x=>x.date>=weekStart))+'</b></span></div><span class="hero-arrow" style="color:var(--muted)">›</span></div><div class="period-row"><span class="period-icon">▣</span><div class="period-copy"><strong>This month</strong><span><b class="income">Income: '+money(sum('Income',x=>x.date.startsWith(month)))+'</b> &nbsp; · &nbsp; <b class="expense">Expense: '+money(sum('Expense',x=>x.date.startsWith(month)))+'</b></span></div><span class="hero-arrow" style="color:var(--muted)">›</span></div>';
@@ -188,7 +213,8 @@ $('previousPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.c
 $('nextPage').onclick=()=>{const i=pageOrder.findIndex(id=>$(id).classList.contains('active'));if(i>=0&&i<pageOrder.length-1)showPage(pageOrder[i+1])};
 $('scheduleHero').onclick=()=>{render();showPage('reminders')};$('viewAllJobs').onclick=()=>showPage('work');$('reminderBack').onclick=()=>showPage('home');
 $('businessHero').onclick=()=>showPage('money');
-document.querySelectorAll('[data-job-filter]').forEach(b=>b.onclick=()=>showPage('work'));
+document.querySelectorAll('[data-job-filter]').forEach(b=>b.onclick=()=>{dashboardJobFilter=b.dataset.jobFilter;renderDashboardJobResults();showPage('home')});
+$('closeDashboardJobResults').onclick=()=>{dashboardJobFilter='';renderDashboardJobResults()};
 function openPersonalInfo(){ $('pinOverlay').hidden=false;$('personalPin').value='';$('pinError').hidden=true;setTimeout(()=>$('personalPin').focus(),40) }
 $('personalHero').onclick=openPersonalInfo;$('bottomPersonal').onclick=openPersonalInfo;$('sidePersonal').onclick=openPersonalInfo;
 function closePin(){ $('pinOverlay').hidden=true;$('personalPin').value='';$('pinError').hidden=true }
