@@ -169,7 +169,7 @@ function updateMoneyCategoryFields(){
 $('mCategory').onchange=updateMoneyCategoryFields;
 $('mPersonMobile').addEventListener('input',e=>{e.target.value=formatMobile(e.target.value)});
 function findMoneyCustomer(){
- activeMoneyMobile='';activeMoneyJob='';
+ $('mSearchMessage').hidden=false;activeMoneyMobile='';activeMoneyJob='';
  const mobile=digits($('mSearchMobile').value);
  if(!validMobile(mobile)){ $('mSearchMessage').textContent='Enter a valid saved 11-digit customer mobile number.';$('mAllTransactionsCard').hidden=true;$('mCustomerCard').hidden=true;$('mJobPicker').hidden=true;$('mJobWorkspace').hidden=true;return}
  const c=db.customers.find(x=>digits(x.mobile)===mobile);
