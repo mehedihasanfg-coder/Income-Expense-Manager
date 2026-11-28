@@ -11,7 +11,7 @@ function load(){
   const x=JSON.parse(localStorage.getItem('iem-db')||'{}');
   const data=Object.assign({customers:[],money:[],works:[]},x);
   data.customers=data.customers.map(c=>({...c,mobile:formatMobile(c.mobile)}));
-  data.money=(data.money||[]).map(x=>({...x,customerMobile:x.customerMobile||'',personName:x.personName||'',caseNo:x.caseNo||'',investigationDate:x.investigationDate||''}));
+  data.money=(data.money||[]).map(x=>({...x,customerMobile:x.customerMobile||'',personName:x.personName||'',personMobile:x.personMobile||'',jobRecordNo:x.jobRecordNo||'',mutationApplicationNo:x.mutationApplicationNo||'',rorNo:x.rorNo||'',mousaNo:x.mousaNo||'',caseNo:x.caseNo||'',investigationDate:x.investigationDate||''}));
   const usedRecordNos=new Set();let jobSeq=0;
   data.works=data.works.map(w=>{
    if(!/^01\d{9}$/.test(digits(w.id))){
@@ -134,7 +134,7 @@ function render(){
  const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q),cs=db.customers.filter(c=>!q||String(c.name||'').toLowerCase().includes(q)||(qd.length>0&&digits(c.mobile).includes(qd)));
  $('customerList').innerHTML=cs.length?cs.map(c=>item(esc(c.name)+' · '+esc(c.mobile),'Qut.: '+esc(c.qty||'—'),act('cedit',digits(c.mobile),'Edit')+act('cdel',digits(c.mobile),'Delete','danger'))).join(''):'<div class="empty">No customer records yet.</div>';
  const mf=$('moneyFilter').value,ms=db.money.filter(x=>mf==='All'||x.type===mf).slice().reverse();
- $('moneyList').innerHTML=ms.length?ms.map(x=>{const extra=x.customerMobile?' · '+esc(x.customerMobile)+' · '+esc(x.personName||''):x.caseNo?' · Case '+esc(x.caseNo)+' · Investigation '+esc(x.investigationDate||''):'';return item('<span class="'+(x.type==='Income'?'good':'bad')+'">'+esc(x.type)+'</span> · '+money(x.amount),esc(x.category)+extra+' · '+esc(x.date)+' · '+esc(x.description),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))}).join(''):'<div class="empty">No transactions yet.</div>';
+ $('moneyList').innerHTML=ms.length?ms.map(x=>{const extra=(x.jobRecordNo?' · Job '+esc(x.jobRecordNo):'')+(x.customerMobile?' · '+esc(x.customerMobile):'')+(x.personName?' · '+esc(x.personName):'')+(x.personMobile?' ('+esc(x.personMobile)+')':'')+(x.caseNo?' · Case '+esc(x.caseNo):'');return item('<span class="'+(x.type==='Income'?'good':'bad')+'">'+esc(x.type)+'</span> · '+money(x.amount),esc(x.category)+extra+' · '+esc(x.date)+' · '+esc(x.description),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))}).join(''):'<div class="empty">No transactions yet.</div>';
  $('workList').innerHTML=db.works.slice().reverse().map(w=>item(esc(formatMobile(w.id))+' · '+esc(w.customer),'Job: '+esc(w.description)+' · Deadline '+esc(w.deadline)+' · Handover '+esc(w.handover||'—')+' · <b>'+esc(status(w))+'</b>',act('wedit',w.recordNo,'Edit')+act('wdel',w.recordNo,'Delete','danger'))).join('')||'<div class="empty">No job records yet.</div>';
  const selectedReminders=db.works.filter(w=>w.reminder===true).slice().sort((a,b)=>String(a.deadline||'').localeCompare(String(b.deadline||'')));
  $('reminderList').innerHTML=selectedReminders.length?selectedReminders.map(w=>item(esc(w.customer)+' · '+esc(formatMobile(w.id)), 'Deadline: '+esc(w.deadline||'—')+' · Receive: '+esc(w.received||'—')+' · Status: '+esc(status(w))+' · '+esc(w.description||''),act('wedit',w.recordNo,'Open job'))).join(''):'<div class="empty">None of them files are Reminder!</div>';
@@ -159,29 +159,65 @@ $('customerForm').onsubmit=e=>{
  clearForm($('customerForm'),'customerEdit');save();
 };
 $('customerClear').onclick=()=>{clearForm($('customerForm'),'customerEdit');$('customerSearch').value='';render()};
-const customerCategories=['Mutation','Khatian','Dhokila/ ldtax'];
-const caseCategories=['M.P. Case','150 Dhara Case','S.F. Files'];
+let activeMoneyMobile='',activeMoneyJob='';
 function updateMoneyCategoryFields(){
- const cat=$('mCategory').value,showCustomer=customerCategories.includes(cat),showCase=caseCategories.includes(cat);
- $('mCustomerFields').hidden=!showCustomer;$('mCaseFields').hidden=!showCase;
- $('mCustomerMobile').required=showCustomer;$('mPersonName').required=showCustomer;
- $('mCaseNo').required=showCase;$('mInvestigationDate').required=showCase;
+ const cat=$('mCategory').value;
+ $('mMutationFields').hidden=cat!=='Mutation';
+ $('mSectionFields').hidden=!['Section (144/145)','Section (150)','S.F Files'].includes(cat);
+ $('mRorFields').hidden=!['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(cat);
 }
 $('mCategory').onchange=updateMoneyCategoryFields;
-$('mCustomerMobile').addEventListener('input',e=>{e.target.value=formatMobile(e.target.value)});
+$('mPersonMobile').addEventListener('input',e=>{e.target.value=formatMobile(e.target.value)});
+function findMoneyCustomer(){
+ const mobile=digits($('mSearchMobile').value);
+ if(!validMobile(mobile)){ $('mSearchMessage').textContent='Enter a valid saved 11-digit customer mobile number.';$('mCustomerCard').hidden=true;$('mJobPicker').hidden=true;$('mJobWorkspace').hidden=true;return}
+ const c=db.customers.find(x=>digits(x.mobile)===mobile);
+ if(!c){$('mSearchMessage').textContent='No customer found with this mobile number.';$('mCustomerCard').hidden=true;$('mJobPicker').hidden=true;$('mJobWorkspace').hidden=true;return}
+ activeMoneyMobile=mobile;
+ $('mSearchMessage').textContent='Customer found. Select one of their job records.';
+ $('mCustomerCard').hidden=false;
+ $('mCustomerCard').innerHTML='<strong>'+esc(c.name)+'</strong><div class="meta">Customer Mobile: '+esc(c.mobile)+'<br>Job Quantity: '+esc(c.qty||'—')+'<br>NID No.: '+esc(c.nid||'—')+'<br>Contact Details: '+esc(c.contactDetails||'—')+'</div>';
+ const jobs=db.works.filter(w=>digits(w.id)===mobile);
+ $('mJobPicker').hidden=!jobs.length;
+ $('mJobWorkspace').hidden=true;
+ if(!jobs.length){$('mSearchMessage').textContent='Customer found, but no job records are saved for this customer yet.';return}
+ $('mJobSelect').innerHTML='<option value="">Select Job Record</option>'+jobs.map(w=>'<option value="'+esc(w.recordNo)+'">'+esc(w.recordNo)+' · '+esc(w.category||'')+' · '+esc(w.description||'')+'</option>').join('');
+}
+$('mSearchBtn').onclick=findMoneyCustomer;
+$('mSearchMobile').addEventListener('input',e=>{e.target.value=formatMobile(e.target.value)});
+$('mSearchMobile').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();findMoneyCustomer()}};
+function showMoneyJob(){
+ const no=$('mJobSelect').value,w=db.works.find(x=>x.recordNo===no);
+ activeMoneyJob=no;
+ if(!w){$('mJobWorkspace').hidden=true;return}
+ $('mJobWorkspace').hidden=false;
+ const paid=Number(w.totalPayingAmount)||0,contact=Number(w.contactAmount)||0;
+ $('mJobDetails').innerHTML='<strong>'+esc(w.recordNo)+' · '+esc(w.category||'')+'</strong><div class="meta">Customer: '+esc(w.customer)+' ('+esc(formatMobile(w.id))+')<br>Job Description: '+esc(w.description||'—')+'<br>Status: '+esc(w.status||'—')+'<br>Contact Amount: '+money(contact)+'</div>';
+ const parts=[w.amount,w.amount2,w.amount3,w.amount4,w.amount5].map((v,i)=>Number(v)>0?((i+1)+'st/Payment '+money(v)):null).filter(Boolean);
+ $('mIncomeDetails').innerHTML='<strong>Total Job Income: '+money(paid)+'</strong><div class="meta">Payment stage: '+esc(w.eip||'—')+'<br>Received Date: '+esc(w.received||'—')+'<br>Payment entries: '+(parts.length?parts.map(esc).join(' · '):'No payment received yet')+'</div>';
+ $('mMutationIncome').value=money(paid);
+ const expenses=db.money.filter(x=>x.type==='Expense'&&x.jobRecordNo===no);
+ const totalExpense=expenses.reduce((s,x)=>s+(Number(x.amount)||0),0);
+ $('mJobExpenseList').innerHTML=expenses.length?expenses.slice().reverse().map(x=>item(money(x.amount)+' · '+esc(x.category||'Expense'),esc(x.personName||'')+' ('+esc(x.personMobile||'')+') · '+esc(x.date||'')+' · '+esc(x.description||''),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))).join(''):'<div class="empty">No expenses saved for this job.</div>';
+ $('mJobExpenseList').insertAdjacentHTML('beforeend','<div class="customer-result"><strong>Total Job Expenses: '+money(totalExpense)+'</strong><br><strong>Job Balance: '+money(paid-totalExpense)+'</strong></div>');
+ $('mCategory').value=w.category||'';updateMoneyCategoryFields();
+}
+$('mJobSelect').onchange=showMoneyJob;
 $('moneyForm').onsubmit=e=>{
  e.preventDefault();
+ const w=db.works.find(x=>x.recordNo===activeMoneyJob);
+ if(!w){alert('Search a customer and select a Job Record first.');return}
  const cat=$('mCategory').value;
  if(!cat){alert('Please select a Category.');$('mCategory').focus();return}
- const customerMode=customerCategories.includes(cat),caseMode=caseCategories.includes(cat);
- const mobile=formatMobile($('mCustomerMobile').value);
- if(customerMode&&(!validMobile(mobile)||!$('mPersonName').value.trim())){alert('Enter a valid Customer Mobile and Person Name.');return}
- if(caseMode&&(!$('mCaseNo').value.trim()||!$('mInvestigationDate').value)){alert('Enter Case No. and Investigation Date.');return}
- const x={id:$('moneyEdit').value||uid('TX'),type:$('mType').value,category:cat,amount:num($('mAmount').value),customerMobile:customerMode?mobile:'',personName:customerMode?$('mPersonName').value.trim():'',caseNo:caseMode?$('mCaseNo').value.trim():'',investigationDate:caseMode?$('mInvestigationDate').value:'',date:$('mDate').value,description:$('mDescription').value};
+ const personName=$('mPersonName').value.trim(),personMobile=formatMobile($('mPersonMobile').value);
+ if(!personName||!validMobile(personMobile)){alert('Enter the recipient name and a valid 11-digit mobile number.');return}
+ if(['Section (144/145)','Section (150)','S.F Files'].includes(cat)&&(!$('mCaseNo').value.trim()||!$('mInvestigationDate').value)){alert('Enter Case No. and Investigation Date.');return}
+ const x={id:$('moneyEdit').value||uid('TX'),type:'Expense',jobRecordNo:w.recordNo,customerMobile:formatMobile(w.id),personName,personMobile,category:cat,mutationApplicationNo:cat==='Mutation' ? $('mMutationNo').value.trim():'',caseNo:['Section (144/145)','Section (150)','S.F Files'].includes(cat)?$('mCaseNo').value.trim():'',investigationDate:['Section (144/145)','Section (150)','S.F Files'].includes(cat)?$('mInvestigationDate').value:'',rorNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(cat)?$('mRorNo').value.trim():'',mousaNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(cat)?$('mMousaNo').value.trim():'',amount:num($('mAmount').value),date:$('mDate').value,description:$('mDescription').value};
+ if(!x.amount||!x.date){alert('Enter an amount and date.');return}
  const i=db.money.findIndex(y=>y.id===x.id);if(i<0)db.money.push(x);else db.money[i]=x;
- clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today();updateMoneyCategoryFields();save()
+ clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today();$('mCategory').value=w.category||'';updateMoneyCategoryFields();showMoneyJob();save();
 };
-$('moneyClear').onclick=()=>{clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today();updateMoneyCategoryFields()};
+$('moneyClear').onclick=()=>{clearForm($('moneyForm'),'moneyEdit');$('mDate').value=today();$('mCategory').value=db.works.find(w=>w.recordNo===activeMoneyJob)?.category||'';updateMoneyCategoryFields()};
 $('wId').onchange=()=>{
  const c=db.customers.find(x=>digits(x.mobile)===digits($('wId').value));
  if(!c){$('wCustomer').value='';$('wQty').value='';$('customerRequiredModal').hidden=false;return}
@@ -226,8 +262,8 @@ $('customerCsvBtn').onclick=()=>downloadCsv('Customer.csv',
  ['Qut.','Cust. Mobile (ID)','Customer Name','NID No.','Password','Contact Details'],
  db.customers.map(x=>[x.qty||'',x.mobile,x.name,x.nid,x.password,x.contactDetails]));
 $('moneyCsvBtn').onclick=()=>downloadCsv('Income & Expense.csv',
- ['Record ID','Type','Category','Amount','Customer Mobile','Person Name','Case No.','Investigation Date','Date','Description'],
- db.money.map(x=>[x.id,x.type,x.category,x.amount,x.customerMobile||'',x.personName||'',x.caseNo||'',x.investigationDate||'',x.date,x.description]));
+ ['Record ID','Type','Job Record No.','Category','Amount','Customer Mobile','Person Name','Person Mobile','Mut. Appl. No.','Case No.','Investigation Date','(ROR) No.','Mousa No.','Date','Description'],
+ db.money.map(x=>[x.id,x.type,x.jobRecordNo||'',x.category,x.amount,x.customerMobile||'',x.personName||'',x.personMobile||'',x.mutationApplicationNo||'',x.caseNo||'',x.investigationDate||'',x.rorNo||'',x.mousaNo||'',x.date,x.description]));
 $('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
  ['Job Record No.','Customer Mobile (Customer ID)','Customer Name','Job Category','Mut. Appl. No.','Case No.','Investigation Date','(ROR) No.','Mousa No.','Status','Job Description','Contact Amount','Received Date','EIP','1st Amount','2nd Amount','3rd Amount','4th Amount','Final Amount','Datelines','Handover','Total Paying Amount','Reminder'],
  db.works.map(x=>[x.recordNo||'',x.id,x.customer,x.category||'',x.mutationApplicationNo||'',x.caseNo||'',x.investigationDate||'',x.rorNo||'',x.mousaNo||'',x.status,x.description,x.contactAmount??'',x.received,x.eip||'',x.amount??'',x.amount2??'',x.amount3??'',x.amount4??'',x.amount5??'',x.deadline,x.handover,x.totalPayingAmount??'',x.reminder?'Yes':'No']));
@@ -296,5 +332,5 @@ $('exportBtn').onclick=()=>{const a=document.createElement('a'),blob=new Blob([J
 $('importFile').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const x=JSON.parse(await f.text());if(!Array.isArray(x.customers)||!Array.isArray(x.money)||!Array.isArray(x.works))throw Error();if(confirm('Replace current records with this backup?')){db=x;save();alert('Backup restored.')}}catch{alert('Invalid backup file.')}e.target.value=''};
 $('clearAll').onclick=()=>{if(confirm('Permanently delete all records stored in this browser?')){db={customers:[],money:[],works:[]};save()}};
 $('notifyBtn').onclick=async()=>{if(!('Notification'in window)){alert('Notifications are not supported by this browser.');return}const p=await Notification.requestPermission();alert(p==='granted'?'Browser notifications enabled. Open the app to review reminders.':'Notification permission was not granted.')};
-$('mDate').value=$('wReceived').value=today();refreshJobOptions();updateJobCategoryFields();updatePaymentFields();updatePaymentTotal();render();
+$('mDate').value=$('wReceived').value=today();updateMoneyCategoryFields();refreshJobOptions();updateJobCategoryFields();updatePaymentFields();updatePaymentTotal();render();
 })();
