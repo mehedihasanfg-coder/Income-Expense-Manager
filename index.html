@@ -188,9 +188,9 @@ main{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 <div class="card"><h2>Saved Customers</h2><div id="customerList" class="list"></div></div>
 </section>
 <section id="money" class="panel">
-<div class="card"><h2>Customer &amp; Job Search</h2>
+<div class="card"><h2>Add income or expense</h2>
 <div class="field"><label for="mSearchMobile">Search Mobile</label><div class="search-row"><input id="mSearchMobile" inputmode="numeric" maxlength="12" placeholder="Enter customer mobile number"><button class="btn" type="button" id="mSearchBtn">Search</button></div></div>
-<div id="mSearchMessage" class="note" style="margin-top:9px" aria-live="polite">Search a saved customer mobile number to view their information and jobs.</div>
+<div id="mSearchMessage" class="note" style="margin-top:9px" aria-live="polite" hidden></div>
 <div id="mCustomerCard" class="customer-result" hidden></div>
 <div id="mJobPicker" class="field" style="margin-top:12px" hidden><label for="mJobSelect">Select Job Record</label><select id="mJobSelect"><option value="">Select Job</option></select></div>
 </div>
