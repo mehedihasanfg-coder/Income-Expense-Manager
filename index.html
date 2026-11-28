@@ -196,9 +196,9 @@ main{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 </div>
 <div id="mJobWorkspace" hidden>
 <div class="card"><h2>Selected Job Information</h2><div id="mJobDetails" class="customer-result"></div></div>
-<div class="card"><h2>Job Income</h2><div id="mIncomeDetails" class="customer-result"></div></div>
-<div class="card"><h2>Job Expenses</h2><div id="mJobExpenseList" class="list"></div></div>
-<div class="card" id="mExpenseCard"><h2>Add Job Expense</h2>
+<div class="field full" style="margin:12px 0"><label for="mType">Type</label><select id="mType"><option value="">Select</option><option>Income</option><option>Expense</option></select></div><div class="card" id="mIncomeCard" hidden><h2>Job Income</h2><div id="mIncomeDetails" class="customer-result"></div></div>
+<div class="card" id="mExpenseListCard" hidden><h2>Job Expenses</h2><div id="mJobExpenseList" class="list"></div></div>
+<div class="card" id="mExpenseCard" hidden><h2>Add Job Expense</h2>
 <form id="moneyForm"><input type="hidden" id="moneyEdit"><div class="grid">
 <div class="field full"><label>Category</label><select id="mCategory" required><option value="">Select</option><option>Mutation</option><option>Section (144/145)</option><option>Section (150)</option><option>S.F Files</option><option>CP (ROR)</option><option>Draft (ROR)</option><option>Search (ROR)</option><option>Corr. (ROR)</option><option>NID/Number Rpls.</option><option>Others</option></select></div>
 <div class="field full" id="mMutationFields" hidden><div class="grid"><div class="field"><label>Mut. Appl. No.</label><input id="mMutationNo" type="text"></div><div class="field"><label>Total Job Income</label><input id="mMutationIncome" type="text" readonly></div></div></div>
