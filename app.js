@@ -12,7 +12,6 @@ function load(){
   const data=Object.assign({customers:[],money:[],works:[]},x);
   data.customers=data.customers.map(c=>({...c,mobile:formatMobile(c.mobile)}));
   data.money=(data.money||[]).map(x=>({...x,customerMobile:x.customerMobile||'',personName:x.personName||'',caseNo:x.caseNo||'',investigationDate:x.investigationDate||''}));
-  localStorage.setItem('iem-db',JSON.stringify(data));
   data.works=data.works.map(w=>{
    if(!/^01\d{9}$/.test(digits(w.id))){
     const c=data.customers.find(c=>c.name===w.customer);
@@ -20,10 +19,11 @@ function load(){
    }
    const stage=w.eip||'1st Pay',legacyNo=stage==='2nd Pay'?2:stage==='3rd Pay'?3:stage==='4th Pay'?4:stage==='Final Pay'?5:1;
    const amounts=[w.amount??'',w.amount2??'',w.amount3??'',w.amount4??'',w.amount5??''];
-   if(amounts.every(v=>v===''||v===null||v===undefined))amounts[legacyNo-1]=w.amount??'';
+   if(w.paymentSchema!==2){amounts.fill('');amounts[legacyNo-1]=w.amount??'';}
    const total=amounts.reduce((sum,v)=>sum+(Number(v)||0),0);
    return {...w,mutationApplicationNo:w.mutationApplicationNo||'',caseNo:w.caseNo||'',investigationDate:w.investigationDate||'',rorNo:w.rorNo||'',mousaNo:w.mousaNo||'',amount:amounts[0],amount2:amounts[1],amount3:amounts[2],amount4:amounts[3],amount5:amounts[4],totalPayingAmount:total};
   });
+  localStorage.setItem('iem-db',JSON.stringify(data));
   return data;
  }catch{return {customers:[],money:[],works:[]}}
 }
@@ -188,7 +188,7 @@ $('workForm').onsubmit=e=>{
  const payments=[1,2,3,4,5].map(n=>amountNumber($(n===1?'wAmount':'wAmount'+n).value));
  const total=payments.reduce((sum,v)=>sum+(Number(v)||0),0);
  const category=$('wCategory').value;
- const w={id,customer,qty:$('wQty').value,category,mutationApplicationNo:category==='Mutation'?$('wMutationNo').value.trim():'',caseNo:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wCaseNo').value.trim():'',investigationDate:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wInvestigationDate').value:'',rorNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wRorNo').value.trim():'',mousaNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wMousaNo').value.trim():'',description:$('wDescription').value.trim(),contactAmount:amountNumber($('wContactAmount').value),received:$('wReceived').value,eip:$('wEip').value,amount:payments[0],amount2:payments[1],amount3:payments[2],amount4:payments[3],amount5:payments[4],deadline:$('wDeadline').value,handover:$('wHandover').value,totalPayingAmount:total,status:$('wStatus').value,reminder:$('wReminder').checked};
+ const w={paymentSchema:2,id,customer,qty:$('wQty').value,category,mutationApplicationNo:category==='Mutation'?$('wMutationNo').value.trim():'',caseNo:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wCaseNo').value.trim():'',investigationDate:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wInvestigationDate').value:'',rorNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wRorNo').value.trim():'',mousaNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wMousaNo').value.trim():'',description:$('wDescription').value.trim(),contactAmount:amountNumber($('wContactAmount').value),received:$('wReceived').value,eip:$('wEip').value,amount:payments[0],amount2:payments[1],amount3:payments[2],amount4:payments[3],amount5:payments[4],deadline:$('wDeadline').value,handover:$('wHandover').value,totalPayingAmount:total,status:$('wStatus').value,reminder:$('wReminder').checked};
  if(!w.description){alert('Enter Job Description.');return}
  const i=db.works.findIndex(x=>digits(x.id)===id);if(i<0)db.works.push(w);else db.works[i]=w;
  clearForm($('workForm'),'workEdit');$('wReceived').value=today();refreshJobOptions();save();
