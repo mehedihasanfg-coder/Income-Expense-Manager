@@ -18,7 +18,11 @@ function load(){
     const c=data.customers.find(c=>c.name===w.customer);
     if(c)w={...w,id:digits(c.mobile)};
    }
-   return w;
+   const stage=w.eip||'1st Pay',legacyNo=stage==='2nd Pay'?2:stage==='3rd Pay'?3:stage==='4th Pay'?4:stage==='Final Pay'?5:1;
+   const amounts=[w.amount??'',w.amount2??'',w.amount3??'',w.amount4??'',w.amount5??''];
+   if(amounts.every(v=>v===''||v===null||v===undefined))amounts[legacyNo-1]=w.amount??'';
+   const total=amounts.reduce((sum,v)=>sum+(Number(v)||0),0);
+   return {...w,mutationApplicationNo:w.mutationApplicationNo||'',caseNo:w.caseNo||'',investigationDate:w.investigationDate||'',rorNo:w.rorNo||'',mousaNo:w.mousaNo||'',amount:amounts[0],amount2:amounts[1],amount3:amounts[2],amount4:amounts[3],amount5:amounts[4],totalPayingAmount:total};
   });
   return data;
  }catch{return {customers:[],money:[],works:[]}}
@@ -41,7 +45,40 @@ function formatTaka(value){
  const [whole,decimal]=s.split('.');const grouped=whole.replace(/\B(?=(\d{2})+(\d{1})?$)/g,',');
  return grouped+(decimal!==undefined?'.'+decimal:'')+'/- ৳';
 }
-['wContactAmount','wAmount','wTotalPayingAmount'].forEach(id=>{
+function updatePaymentTotal(){
+ const total=[1,2,3,4,5].reduce((sum,n)=>sum+(Number(amountNumber($(n===1?'wAmount':'wAmount'+n).value))||0),0);
+ const formatted=total?formatTaka(total):'';
+ $('wTotalPayingAmount').value=formatted;$('wMutationTotal').value=formatted;
+}
+function paymentInput(id){
+ const field=$(id);
+ field.addEventListener('focus',()=>{field.value=amountDigits(field.value)});
+ field.addEventListener('input',()=>{const raw=amountDigits(field.value);const [whole,decimal]=raw.split('.');field.value=whole.replace(/\B(?=(\d{2})+(\d{1})?$)/g,',')+(decimal!==undefined?'.'+decimal:'');updatePaymentTotal()});
+ field.addEventListener('blur',()=>{field.value=formatTaka(field.value);updatePaymentTotal()});
+}
+['wContactAmount','wAmount'].forEach(paymentInput);
+function updatePaymentFields(){
+ const stage=$('wEip').value;
+ const count=stage==='2nd Pay'?2:stage==='3rd Pay'?3:stage==='4th Pay'?4:stage==='Final Pay'?5:1;
+ const names=['2nd','3rd','4th','Final'];
+ if(!$('wExtraPaymentFields').dataset.built){
+  $('wExtraPaymentFields').innerHTML=names.map((name,index)=>'<div class="payment-extra" id="paymentRow'+(index+2)+'"><div class="field"><label>'+name+' Amount</label><input id="wAmount'+(index+2)+'" class="job-money" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"></div></div>').join('');
+  names.forEach((name,index)=>paymentInput('wAmount'+(index+2)));
+  $('wExtraPaymentFields').dataset.built='1';
+ }
+ for(let n=2;n<=5;n++)$('paymentRow'+n).hidden=n>count;
+ $('wExtraPaymentFields').hidden=count===1;
+}
+function updateJobCategoryFields(){
+ const cat=$('wCategory').value;
+ const mutation=cat==='Mutation';
+ const section=['Section (144/145)','Section (150)','S.F Files'].includes(cat);
+ const ror=['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(cat);
+ $('wMutationFields').hidden=!mutation;$('wSectionFields').hidden=!section;$('wRorFields').hidden=!ror;$('wTotalPayingField').hidden=mutation;
+}
+$('wCategory').addEventListener('change',updateJobCategoryFields);
+$('wEip').addEventListener('change',updatePaymentFields);
+
  const field=$(id);
  field.addEventListener('focus',()=>{field.value=amountDigits(field.value)});
  field.addEventListener('input',()=>{const raw=amountDigits(field.value);const [whole,decimal]=raw.split('.');field.value=whole.replace(/\B(?=(\d{2})+(\d{1})?$)/g,',')+(decimal!==undefined?'.'+decimal:'')});
@@ -148,12 +185,15 @@ $('customerRequiredOk').onclick=()=>{$('customerRequiredModal').hidden=true;show
 $('workForm').onsubmit=e=>{
  e.preventDefault();const id=digits($('wId').value),customer=customerName(id);
  if(!validMobile(id)||!customer){alert('Select a saved Customer Mobile (ID) first.');return}
- const w={id,customer,qty:$('wQty').value,category:$('wCategory').value,description:$('wDescription').value.trim(),contactAmount:amountNumber($('wContactAmount').value),received:$('wReceived').value,eip:$('wEip').value,amount:amountNumber($('wAmount').value),deadline:$('wDeadline').value,handover:$('wHandover').value,totalPayingAmount:amountNumber($('wTotalPayingAmount').value),status:$('wStatus').value,reminder:$('wReminder').checked};
+ const payments=[1,2,3,4,5].map(n=>amountNumber($(n===1?'wAmount':'wAmount'+n).value));
+ const total=payments.reduce((sum,v)=>sum+(Number(v)||0),0);
+ const category=$('wCategory').value;
+ const w={id,customer,qty:$('wQty').value,category,mutationApplicationNo:category==='Mutation'?$('wMutationNo').value.trim():'',caseNo:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wCaseNo').value.trim():'',investigationDate:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wInvestigationDate').value:'',rorNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wRorNo').value.trim():'',mousaNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wMousaNo').value.trim():'',description:$('wDescription').value.trim(),contactAmount:amountNumber($('wContactAmount').value),received:$('wReceived').value,eip:$('wEip').value,amount:payments[0],amount2:payments[1],amount3:payments[2],amount4:payments[3],amount5:payments[4],deadline:$('wDeadline').value,handover:$('wHandover').value,totalPayingAmount:total,status:$('wStatus').value,reminder:$('wReminder').checked};
  if(!w.description){alert('Enter Job Description.');return}
  const i=db.works.findIndex(x=>digits(x.id)===id);if(i<0)db.works.push(w);else db.works[i]=w;
  clearForm($('workForm'),'workEdit');$('wReceived').value=today();refreshJobOptions();save();
 };
-$('workClear').onclick=()=>{clearForm($('workForm'),'workEdit');$('wReceived').value=today();$('wReminder').checked=false;refreshJobOptions()};
+$('workClear').onclick=()=>{clearForm($('workForm'),'workEdit');$('wReceived').value=today();$('wReminder').checked=false;updateJobCategoryFields();updatePaymentFields();updatePaymentTotal();refreshJobOptions()};
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-action]');if(!b)return;const {action,id}=b.dataset;
  if(action==='cdel'&&confirm('Delete this customer?'))db.customers=db.customers.filter(x=>digits(x.mobile)!==digits(id));
@@ -165,7 +205,7 @@ document.addEventListener('click',e=>{
   document.querySelector('[data-tab="customers"]').click();
  }
  if(action==='medit'){const x=db.money.find(x=>x.id===id);if(!x)return;$('moneyEdit').value=id;const catSelect=$('mCategory');if(x.category&&!Array.from(catSelect.options).some(o=>o.value===x.category)){const legacy=document.createElement('option');legacy.value=x.category;legacy.textContent='Existing: '+x.category;catSelect.appendChild(legacy)}[['mType','type'],['mCategory','category'],['mAmount','amount'],['mCustomerMobile','customerMobile'],['mPersonName','personName'],['mCaseNo','caseNo'],['mInvestigationDate','investigationDate'],['mDate','date'],['mDescription','description']].forEach(([a,k])=>$(a).value=x[k]??'');updateMoneyCategoryFields();document.querySelector('[data-tab="money"]').click()}
- if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wQty','qty'],['wCategory','category'],['wDescription','description'],['wReceived','received'],['wEip','eip'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status']].forEach(([a,k])=>$(a).value=w[k]||'');[['wContactAmount','contactAmount'],['wAmount','amount'],['wTotalPayingAmount','totalPayingAmount']].forEach(([a,k])=>$(a).value=formatTaka(w[k]));$('wReminder').checked=w.reminder===true;document.querySelector('[data-tab="work"]').click()}
+ if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wQty','qty'],['wCategory','category'],['wDescription','description'],['wReceived','received'],['wEip','eip'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status'],['wMutationNo','mutationApplicationNo'],['wCaseNo','caseNo'],['wInvestigationDate','investigationDate'],['wRorNo','rorNo'],['wMousaNo','mousaNo']].forEach(([a,k])=>$(a).value=w[k]||'');updateJobCategoryFields();updatePaymentFields();const stage=w.eip||'1st Pay',legacyNo=stage==='2nd Pay'?2:stage==='3rd Pay'?3:stage==='4th Pay'?4:stage==='Final Pay'?5:1;const values=[w.amount??'',w.amount2??'',w.amount3??'',w.amount4??'',w.amount5??''];if(values.every(v=>v===''||v===null||v===undefined))values[legacyNo-1]=w.amount??'';$('wContactAmount').value=formatTaka(w.contactAmount);[1,2,3,4,5].forEach(n=>{const el=$(n===1?'wAmount':'wAmount'+n);if(el)el.value=formatTaka(values[n-1])});$('wReminder').checked=w.reminder===true;updatePaymentTotal();document.querySelector('[data-tab="work"]').click()}
  save();
 });
 
@@ -182,8 +222,8 @@ $('moneyCsvBtn').onclick=()=>downloadCsv('Income & Expense.csv',
  ['Record ID','Type','Category','Amount','Customer Mobile','Person Name','Case No.','Investigation Date','Date','Description'],
  db.money.map(x=>[x.id,x.type,x.category,x.amount,x.customerMobile||'',x.personName||'',x.caseNo||'',x.investigationDate||'',x.date,x.description]));
 $('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
- ['Job ID','Customer Name','Status','Job Description','Contact Amount','Received Date','EIP','Amount','Datelines','Handover','Total Paying Amount','Reminder'],
- db.works.map(x=>[x.id,x.customer,x.status,x.description,x.contactAmount??'',x.received,x.eip||'',x.amount??'',x.deadline,x.handover,x.totalPayingAmount??'',x.reminder?'Yes':'No']));
+ ['Job ID','Customer Name','Job Category','Mut. Appl. No.','Case No.','Investigation Date','(ROR) No.','Mousa No.','Status','Job Description','Contact Amount','Received Date','EIP','1st Amount','2nd Amount','3rd Amount','4th Amount','Final Amount','Datelines','Handover','Total Paying Amount','Reminder'],
+ db.works.map(x=>[x.id,x.customer,x.category||'',x.mutationApplicationNo||'',x.caseNo||'',x.investigationDate||'',x.rorNo||'',x.mousaNo||'',x.status,x.description,x.contactAmount??'',x.received,x.eip||'',x.amount??'',x.amount2??'',x.amount3??'',x.amount4??'',x.amount5??'',x.deadline,x.handover,x.totalPayingAmount??'',x.reminder?'Yes':'No']));
 
 function closeMenu(){ $('sideMenu').classList.remove('open');$('menuOverlay').classList.remove('open');$('sideMenu').setAttribute('aria-hidden','true');$('menuOpen').setAttribute('aria-expanded','false') }
 function openMenu(){ $('sideMenu').classList.add('open');$('menuOverlay').classList.add('open');$('sideMenu').setAttribute('aria-hidden','false');$('menuOpen').setAttribute('aria-expanded','true') }
@@ -249,5 +289,5 @@ $('exportBtn').onclick=()=>{const a=document.createElement('a'),blob=new Blob([J
 $('importFile').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const x=JSON.parse(await f.text());if(!Array.isArray(x.customers)||!Array.isArray(x.money)||!Array.isArray(x.works))throw Error();if(confirm('Replace current records with this backup?')){db=x;save();alert('Backup restored.')}}catch{alert('Invalid backup file.')}e.target.value=''};
 $('clearAll').onclick=()=>{if(confirm('Permanently delete all records stored in this browser?')){db={customers:[],money:[],works:[]};save()}};
 $('notifyBtn').onclick=async()=>{if(!('Notification'in window)){alert('Notifications are not supported by this browser.');return}const p=await Notification.requestPermission();alert(p==='granted'?'Browser notifications enabled. Open the app to review reminders.':'Notification permission was not granted.')};
-$('mDate').value=$('wReceived').value=today();refreshJobOptions();render();
+$('mDate').value=$('wReceived').value=today();refreshJobOptions();updateJobCategoryFields();updatePaymentFields();updatePaymentTotal();render();
 })();
