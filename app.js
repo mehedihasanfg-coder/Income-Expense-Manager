@@ -21,7 +21,7 @@ function load(){
    const amounts=[w.amount??'',w.amount2??'',w.amount3??'',w.amount4??'',w.amount5??''];
    if(w.paymentSchema!==2){amounts.fill('');amounts[legacyNo-1]=w.amount??'';}
    const total=amounts.reduce((sum,v)=>sum+(Number(v)||0),0);
-   return {...w,mutationApplicationNo:w.mutationApplicationNo||'',caseNo:w.caseNo||'',investigationDate:w.investigationDate||'',rorNo:w.rorNo||'',mousaNo:w.mousaNo||'',amount:amounts[0],amount2:amounts[1],amount3:amounts[2],amount4:amounts[3],amount5:amounts[4],totalPayingAmount:total};
+   return {...w,paymentSchema:2,mutationApplicationNo:w.mutationApplicationNo||'',caseNo:w.caseNo||'',investigationDate:w.investigationDate||'',rorNo:w.rorNo||'',mousaNo:w.mousaNo||'',amount:amounts[0],amount2:amounts[1],amount3:amounts[2],amount4:amounts[3],amount5:amounts[4],totalPayingAmount:total};
   });
   localStorage.setItem('iem-db',JSON.stringify(data));
   return data;
