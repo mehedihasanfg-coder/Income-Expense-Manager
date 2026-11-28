@@ -94,6 +94,9 @@ button{cursor:pointer}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12
 .job-tile.entry{background:#edf4ff;color:#1764d7}.job-tile.applied{background:#eaf8f1;color:#20a36a}
 .job-tile.pending{background:#fff6e8;color:#e99513}.job-tile.overdue{background:#fff0f1;color:#df4b55}
 .job-tile.approved{background:#f3efff;color:#7654d8}.job-tile.handover{background:#eaf8fa;color:#12a6b4}
+.dashboard-job-results{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+.dashboard-job-results h3{margin:0;font-size:16px}
+.dashboard-job-results[hidden]{display:none}
 .business-hero{min-height:150px;background:linear-gradient(112deg,#3477e8,#1648c7);padding:22px 20px}
 .business-art{font-size:49px;color:#8ac4ff;letter-spacing:-7px;white-space:nowrap;opacity:.9}
 .business-art b{display:inline-grid;place-items:center;width:43px;height:48px;margin-left:8px;border-radius:13px;background:#ffffff27;color:white;font-size:25px;letter-spacing:0}
@@ -152,7 +155,7 @@ main{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 <button class="job-tile overdue" type="button" data-job-filter="Due"><span class="job-icon">◷</span><span class="job-copy"><small>OverDues</small><strong id="dueCount">0</strong></span><b>›</b></button>
 <button class="job-tile approved" type="button" data-job-filter="Approved/DCR"><span class="job-icon">✿</span><span class="job-copy"><small>Approved/DCR</small><strong id="approvedCount">0</strong></span><b>›</b></button>
 <button class="job-tile handover" type="button" data-job-filter="Handover"><span class="job-icon">♧</span><span class="job-copy"><small>Handover</small><strong id="handoverCount">0</strong></span><b>›</b></button>
-</div></div>
+</div><div id="dashboardJobResults" class="dashboard-job-results" hidden><div class="dash-section-head"><h3 id="dashboardJobTitle">Jobs</h3><button type="button" class="view-all" id="closeDashboardJobResults">Close ✕</button></div><div id="dashboardJobList" class="list"></div></div></div>
 <button class="dash-hero business-hero" id="businessHero" type="button"><span class="hero-copy"><strong>Business at a glance</strong><small>Overall summary of your business performance.</small></span><span class="business-art">▥↗<b>৳</b></span><span class="hero-arrow">›</span></button>
 <div class="weekly-card"><h2>Weekly &amp; monthly totals</h2><div id="periodSummary" class="period-list"></div></div>
 <button class="dash-hero personal-hero" id="personalHero" type="button"><span class="hero-copy"><strong>Personal Info</strong><small>Your personal information is private and secure.</small></span><span class="personal-art">♙<i>▣</i></span><span class="hero-arrow">›</span></button>
