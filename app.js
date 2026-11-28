@@ -79,11 +79,6 @@ function updateJobCategoryFields(){
 $('wCategory').addEventListener('change',updateJobCategoryFields);
 $('wEip').addEventListener('change',updatePaymentFields);
 
- const field=$(id);
- field.addEventListener('focus',()=>{field.value=amountDigits(field.value)});
- field.addEventListener('input',()=>{const raw=amountDigits(field.value);const [whole,decimal]=raw.split('.');field.value=whole.replace(/\B(?=(\d{2})+(\d{1})?$)/g,',')+(decimal!==undefined?'.'+decimal:'')});
- field.addEventListener('blur',()=>{field.value=formatTaka(field.value)});
-});
 function refreshJobOptions(selected=''){
  const s=$('wId'),old=selected||s.value;
  s.innerHTML='<option value="">Select Mobile No.</option>'+db.customers.map(c=>'<option value="'+digits(c.mobile)+'">'+esc(c.mobile)+'</option>').join('');
