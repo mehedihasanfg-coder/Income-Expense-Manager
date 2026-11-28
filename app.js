@@ -21,7 +21,7 @@ function load(){
    const amounts=[w.amount??'',w.amount2??'',w.amount3??'',w.amount4??'',w.amount5??''];
    if(w.paymentSchema!==2){amounts.fill('');amounts[legacyNo-1]=w.amount??'';}
    const total=amounts.reduce((sum,v)=>sum+(Number(v)||0),0);
-   return {...w,paymentSchema:2,mutationApplicationNo:w.mutationApplicationNo||'',caseNo:w.caseNo||'',investigationDate:w.investigationDate||'',rorNo:w.rorNo||'',mousaNo:w.mousaNo||'',amount:amounts[0],amount2:amounts[1],amount3:amounts[2],amount4:amounts[3],amount5:amounts[4],totalPayingAmount:total};
+   return {...w,recordNo:w.recordNo||uid('JOB'),paymentSchema:2,mutationApplicationNo:w.mutationApplicationNo||'',caseNo:w.caseNo||'',investigationDate:w.investigationDate||'',rorNo:w.rorNo||'',mousaNo:w.mousaNo||'',amount:amounts[0],amount2:amounts[1],amount3:amounts[2],amount4:amounts[3],amount5:amounts[4],totalPayingAmount:total};
   });
   localStorage.setItem('iem-db',JSON.stringify(data));
   return data;
@@ -116,7 +116,7 @@ function renderDashboardJobResults(){
  if(!dashboardJobFilter){box.hidden=true;return}
  const jobs=dashboardJobs(dashboardJobFilter).slice().reverse();
  $('dashboardJobTitle').textContent=dashboardJobFilter+' Jobs ('+jobs.length+')';
- $('dashboardJobList').innerHTML=jobs.length?jobs.map(w=>item(esc(formatMobile(w.id))+' · '+esc(w.customer),'Contact: '+money(Number(w.contactAmount)||0)+' · Total Paying: '+money(Number(w.totalPayingAmount)||0)+' · '+esc(w.category||'')+' · '+esc(w.description||''),act('wedit',w.id,'Edit')+act('wdel',w.id,'Delete','danger'))).join(''):'<div class="empty">No matching jobs found.</div>';
+ $('dashboardJobList').innerHTML=jobs.length?jobs.map(w=>item(esc(formatMobile(w.id))+' · '+esc(w.customer),'Contact: '+money(Number(w.contactAmount)||0)+' · Total Paying: '+money(Number(w.totalPayingAmount)||0)+' · '+esc(w.category||'')+' · '+esc(w.description||''),act('wedit',w.recordNo,'Edit')+act('wdel',w.recordNo,'Delete','danger'))).join(''):'<div class="empty">No matching jobs found.</div>';
  box.hidden=false;
 }
 function render(){
@@ -131,9 +131,9 @@ function render(){
  $('customerList').innerHTML=cs.length?cs.map(c=>item(esc(c.name)+' · '+esc(c.mobile),'Qut.: '+esc(c.qty||'—'),act('cedit',digits(c.mobile),'Edit')+act('cdel',digits(c.mobile),'Delete','danger'))).join(''):'<div class="empty">No customer records yet.</div>';
  const mf=$('moneyFilter').value,ms=db.money.filter(x=>mf==='All'||x.type===mf).slice().reverse();
  $('moneyList').innerHTML=ms.length?ms.map(x=>{const extra=x.customerMobile?' · '+esc(x.customerMobile)+' · '+esc(x.personName||''):x.caseNo?' · Case '+esc(x.caseNo)+' · Investigation '+esc(x.investigationDate||''):'';return item('<span class="'+(x.type==='Income'?'good':'bad')+'">'+esc(x.type)+'</span> · '+money(x.amount),esc(x.category)+extra+' · '+esc(x.date)+' · '+esc(x.description),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))}).join(''):'<div class="empty">No transactions yet.</div>';
- $('workList').innerHTML=db.works.slice().reverse().map(w=>item(esc(formatMobile(w.id))+' · '+esc(w.customer),'Job: '+esc(w.description)+' · Deadline '+esc(w.deadline)+' · Handover '+esc(w.handover||'—')+' · <b>'+esc(status(w))+'</b>',act('wedit',w.id,'Edit')+act('wdel',w.id,'Delete','danger'))).join('')||'<div class="empty">No job records yet.</div>';
+ $('workList').innerHTML=db.works.slice().reverse().map(w=>item(esc(formatMobile(w.id))+' · '+esc(w.customer),'Job: '+esc(w.description)+' · Deadline '+esc(w.deadline)+' · Handover '+esc(w.handover||'—')+' · <b>'+esc(status(w))+'</b>',act('wedit',w.recordNo,'Edit')+act('wdel',w.recordNo,'Delete','danger'))).join('')||'<div class="empty">No job records yet.</div>';
  const selectedReminders=db.works.filter(w=>w.reminder===true).slice().sort((a,b)=>String(a.deadline||'').localeCompare(String(b.deadline||'')));
- $('reminderList').innerHTML=selectedReminders.length?selectedReminders.map(w=>item(esc(w.customer)+' · '+esc(formatMobile(w.id)), 'Deadline: '+esc(w.deadline||'—')+' · Receive: '+esc(w.received||'—')+' · Status: '+esc(status(w))+' · '+esc(w.description||''),act('wedit',w.id,'Open job'))).join(''):'<div class="empty">None of them files are Reminder!</div>';
+ $('reminderList').innerHTML=selectedReminders.length?selectedReminders.map(w=>item(esc(w.customer)+' · '+esc(formatMobile(w.id)), 'Deadline: '+esc(w.deadline||'—')+' · Receive: '+esc(w.received||'—')+' · Status: '+esc(status(w))+' · '+esc(w.description||''),act('wedit',w.recordNo,'Open job'))).join(''):'<div class="empty">None of them files are Reminder!</div>';
  refreshJobOptions($('wId').value);
 }
 function clearForm(form,hidden){form.reset();$(hidden).value=''}
@@ -190,24 +190,25 @@ $('workForm').onsubmit=e=>{
  const payments=[1,2,3,4,5].map(n=>amountNumber($(n===1?'wAmount':'wAmount'+n).value));
  const total=payments.reduce((sum,v)=>sum+(Number(v)||0),0);
  const category=$('wCategory').value;
- const w={paymentSchema:2,id,customer,qty:$('wQty').value,category,mutationApplicationNo:category==='Mutation'?$('wMutationNo').value.trim():'',caseNo:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wCaseNo').value.trim():'',investigationDate:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wInvestigationDate').value:'',rorNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wRorNo').value.trim():'',mousaNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wMousaNo').value.trim():'',description:$('wDescription').value.trim(),contactAmount:amountNumber($('wContactAmount').value),received:$('wReceived').value,eip:$('wEip').value,amount:payments[0],amount2:payments[1],amount3:payments[2],amount4:payments[3],amount5:payments[4],deadline:$('wDeadline').value,handover:$('wHandover').value,totalPayingAmount:total,status:$('wStatus').value,reminder:$('wReminder').checked};
+ const w={recordNo:$('workEdit').value||uid('JOB'),paymentSchema:2,id,customer,qty:$('wQty').value,category,mutationApplicationNo:category==='Mutation'?$('wMutationNo').value.trim():'',caseNo:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wCaseNo').value.trim():'',investigationDate:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wInvestigationDate').value:'',rorNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wRorNo').value.trim():'',mousaNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wMousaNo').value.trim():'',description:$('wDescription').value.trim(),contactAmount:amountNumber($('wContactAmount').value),received:$('wReceived').value,eip:$('wEip').value,amount:payments[0],amount2:payments[1],amount3:payments[2],amount4:payments[3],amount5:payments[4],deadline:$('wDeadline').value,handover:$('wHandover').value,totalPayingAmount:total,status:$('wStatus').value,reminder:$('wReminder').checked};
  if(!w.description){alert('Enter Job Description.');return}
- const i=db.works.findIndex(x=>digits(x.id)===id);if(i<0)db.works.push(w);else db.works[i]=w;
- clearForm($('workForm'),'workEdit');$('wReceived').value=today();updateJobCategoryFields();updatePaymentFields();updatePaymentTotal();refreshJobOptions();save();
+ $('wRecordNo').value=w.recordNo;
+ const i=db.works.findIndex(x=>x.recordNo===w.recordNo);if(i<0)db.works.push(w);else db.works[i]=w;
+ clearForm($('workForm'),'workEdit');$('wRecordNo').value='';$('wReceived').value=today();updateJobCategoryFields();updatePaymentFields();updatePaymentTotal();refreshJobOptions();save();
 };
-$('workClear').onclick=()=>{clearForm($('workForm'),'workEdit');$('wReceived').value=today();$('wReminder').checked=false;updateJobCategoryFields();updatePaymentFields();updatePaymentTotal();refreshJobOptions()};
+$('workClear').onclick=()=>{clearForm($('workForm'),'workEdit');$('wRecordNo').value='';$('wReceived').value=today();$('wReminder').checked=false;updateJobCategoryFields();updatePaymentFields();updatePaymentTotal();refreshJobOptions()};
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-action]');if(!b)return;const {action,id}=b.dataset;
  if(action==='cdel'&&confirm('Delete this customer?'))db.customers=db.customers.filter(x=>digits(x.mobile)!==digits(id));
  if(action==='mdel'&&confirm('Delete this transaction?'))db.money=db.money.filter(x=>x.id!==id);
- if(action==='wdel'&&confirm('Delete this job record?'))db.works=db.works.filter(x=>digits(x.id)!==digits(id));
+ if(action==='wdel'&&confirm('Delete this job record?'))db.works=db.works.filter(x=>x.recordNo!==id);
  if(action==='cedit'){
   const c=db.customers.find(x=>digits(x.mobile)===digits(id));if(!c)return;$('customerEdit').value=digits(c.mobile);
   [['cQty','qty'],['cMobile','mobile'],['cName','name'],['cNid','nid'],['cPassword','password'],['cContactDetails','contactDetails']].forEach(([a,k])=>$(a).value=c[k]??'');
   document.querySelector('[data-tab="customers"]').click();
  }
  if(action==='medit'){const x=db.money.find(x=>x.id===id);if(!x)return;$('moneyEdit').value=id;const catSelect=$('mCategory');if(x.category&&!Array.from(catSelect.options).some(o=>o.value===x.category)){const legacy=document.createElement('option');legacy.value=x.category;legacy.textContent='Existing: '+x.category;catSelect.appendChild(legacy)}[['mType','type'],['mCategory','category'],['mAmount','amount'],['mCustomerMobile','customerMobile'],['mPersonName','personName'],['mCaseNo','caseNo'],['mInvestigationDate','investigationDate'],['mDate','date'],['mDescription','description']].forEach(([a,k])=>$(a).value=x[k]??'');updateMoneyCategoryFields();document.querySelector('[data-tab="money"]').click()}
- if(action==='wedit'){const w=db.works.find(x=>digits(x.id)===digits(id));if(!w)return;$('workEdit').value=id;refreshJobOptions(id);$('wId').value=digits(id);$('wCustomer').value=customerName(id)||w.customer;[['wQty','qty'],['wCategory','category'],['wDescription','description'],['wReceived','received'],['wEip','eip'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status'],['wMutationNo','mutationApplicationNo'],['wCaseNo','caseNo'],['wInvestigationDate','investigationDate'],['wRorNo','rorNo'],['wMousaNo','mousaNo']].forEach(([a,k])=>$(a).value=w[k]||'');updateJobCategoryFields();updatePaymentFields();const stage=w.eip||'1st Pay',legacyNo=stage==='2nd Pay'?2:stage==='3rd Pay'?3:stage==='4th Pay'?4:stage==='Final Pay'?5:1;const values=[w.amount??'',w.amount2??'',w.amount3??'',w.amount4??'',w.amount5??''];if(values.every(v=>v===''||v===null||v===undefined))values[legacyNo-1]=w.amount??'';$('wContactAmount').value=formatTaka(w.contactAmount);[1,2,3,4,5].forEach(n=>{const el=$(n===1?'wAmount':'wAmount'+n);if(el)el.value=formatTaka(values[n-1])});$('wReminder').checked=w.reminder===true;updatePaymentTotal();document.querySelector('[data-tab="work"]').click()}
+ if(action==='wedit'){const w=db.works.find(x=>x.recordNo===id);if(!w)return;$('workEdit').value=w.recordNo;$('wRecordNo').value=w.recordNo;refreshJobOptions(w.id);$('wId').value=digits(w.id);$('wCustomer').value=customerName(id)||w.customer;[['wQty','qty'],['wCategory','category'],['wDescription','description'],['wReceived','received'],['wEip','eip'],['wDeadline','deadline'],['wHandover','handover'],['wStatus','status'],['wMutationNo','mutationApplicationNo'],['wCaseNo','caseNo'],['wInvestigationDate','investigationDate'],['wRorNo','rorNo'],['wMousaNo','mousaNo']].forEach(([a,k])=>$(a).value=w[k]||'');updateJobCategoryFields();updatePaymentFields();const stage=w.eip||'1st Pay',legacyNo=stage==='2nd Pay'?2:stage==='3rd Pay'?3:stage==='4th Pay'?4:stage==='Final Pay'?5:1;const values=[w.amount??'',w.amount2??'',w.amount3??'',w.amount4??'',w.amount5??''];if(values.every(v=>v===''||v===null||v===undefined))values[legacyNo-1]=w.amount??'';$('wContactAmount').value=formatTaka(w.contactAmount);[1,2,3,4,5].forEach(n=>{const el=$(n===1?'wAmount':'wAmount'+n);if(el)el.value=formatTaka(values[n-1])});$('wReminder').checked=w.reminder===true;updatePaymentTotal();document.querySelector('[data-tab="work"]').click()}
  save();
 });
 
@@ -224,8 +225,8 @@ $('moneyCsvBtn').onclick=()=>downloadCsv('Income & Expense.csv',
  ['Record ID','Type','Category','Amount','Customer Mobile','Person Name','Case No.','Investigation Date','Date','Description'],
  db.money.map(x=>[x.id,x.type,x.category,x.amount,x.customerMobile||'',x.personName||'',x.caseNo||'',x.investigationDate||'',x.date,x.description]));
 $('workCsvBtn').onclick=()=>downloadCsv('Job Details.csv',
- ['Job ID','Customer Name','Job Category','Mut. Appl. No.','Case No.','Investigation Date','(ROR) No.','Mousa No.','Status','Job Description','Contact Amount','Received Date','EIP','1st Amount','2nd Amount','3rd Amount','4th Amount','Final Amount','Datelines','Handover','Total Paying Amount','Reminder'],
- db.works.map(x=>[x.id,x.customer,x.category||'',x.mutationApplicationNo||'',x.caseNo||'',x.investigationDate||'',x.rorNo||'',x.mousaNo||'',x.status,x.description,x.contactAmount??'',x.received,x.eip||'',x.amount??'',x.amount2??'',x.amount3??'',x.amount4??'',x.amount5??'',x.deadline,x.handover,x.totalPayingAmount??'',x.reminder?'Yes':'No']));
+ ['Job Record No.','Customer Mobile (Customer ID)','Customer Name','Job Category','Mut. Appl. No.','Case No.','Investigation Date','(ROR) No.','Mousa No.','Status','Job Description','Contact Amount','Received Date','EIP','1st Amount','2nd Amount','3rd Amount','4th Amount','Final Amount','Datelines','Handover','Total Paying Amount','Reminder'],
+ db.works.map(x=>[x.recordNo||'',x.id,x.customer,x.category||'',x.mutationApplicationNo||'',x.caseNo||'',x.investigationDate||'',x.rorNo||'',x.mousaNo||'',x.status,x.description,x.contactAmount??'',x.received,x.eip||'',x.amount??'',x.amount2??'',x.amount3??'',x.amount4??'',x.amount5??'',x.deadline,x.handover,x.totalPayingAmount??'',x.reminder?'Yes':'No']));
 
 function closeMenu(){ $('sideMenu').classList.remove('open');$('menuOverlay').classList.remove('open');$('sideMenu').setAttribute('aria-hidden','true');$('menuOpen').setAttribute('aria-expanded','false') }
 function openMenu(){ $('sideMenu').classList.add('open');$('menuOverlay').classList.add('open');$('sideMenu').setAttribute('aria-hidden','false');$('menuOpen').setAttribute('aria-expanded','true') }
