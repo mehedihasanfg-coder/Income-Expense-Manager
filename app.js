@@ -64,6 +64,7 @@ function dashboardJobs(group){
   if(group==='Approved/DCR')return selected==='approved/dcr';
   if(group==='Handover')return selected==='handover';
   if(selected==='approved/dcr')return false;
+  if(w.contactAmount===''||w.contactAmount===null||w.contactAmount===undefined||w.totalPayingAmount===''||w.totalPayingAmount===null||w.totalPayingAmount===undefined)return false;
   const contact=Number(w.contactAmount),paid=Number(w.totalPayingAmount);
   if(!Number.isFinite(contact)||contact<=0||!Number.isFinite(paid)||paid<0)return false;
   if(group==='Pending')return paid<=contact*0.50;
