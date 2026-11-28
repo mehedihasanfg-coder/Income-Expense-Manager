@@ -131,7 +131,7 @@ function render(){
  const sum=(type,fn)=>db.money.filter(x=>x.type===type&&fn(x)).reduce((a,x)=>a+x.amount,0);
  $('periodSummary').innerHTML='<div class="period-row"><span class="period-icon">▦</span><div class="period-copy"><strong>Last 7 days</strong><span><b class="income">Income: '+money(sum('Income',x=>x.date>=weekStart))+'</b> &nbsp; · &nbsp; <b class="expense">Expense: '+money(sum('Expense',x=>x.date>=weekStart))+'</b></span></div><span class="hero-arrow" style="color:var(--muted)">›</span></div><div class="period-row"><span class="period-icon">▣</span><div class="period-copy"><strong>This month</strong><span><b class="income">Income: '+money(sum('Income',x=>x.date.startsWith(month)))+'</b> &nbsp; · &nbsp; <b class="expense">Expense: '+money(sum('Expense',x=>x.date.startsWith(month)))+'</b></span></div><span class="hero-arrow" style="color:var(--muted)">›</span></div>';
  const rem=reminders();
- const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q),cs=db.customers.filter(c=>!q||String(c.name||'').toLowerCase().includes(q)||(qd.length>0&&digits(c.mobile).includes(qd)));
+ const cs=db.customers;
  $('customerList').innerHTML=cs.length?cs.map(c=>item(esc(c.name)+' · '+esc(c.mobile),'Qut.: '+esc(c.qty||'—'),act('cedit',digits(c.mobile),'Edit')+act('cdel',digits(c.mobile),'Delete','danger'))).join(''):'<div class="empty">No customer records yet.</div>';
  const mf=$('moneyFilter').value,ms=db.money.filter(x=>mf==='All'||x.type===mf).slice().reverse();
  $('moneyList').innerHTML=ms.length?ms.map(x=>{const extra=(x.jobRecordNo?' · Job '+esc(x.jobRecordNo):'')+(x.customerMobile?' · '+esc(x.customerMobile):'')+(x.personName?' · '+esc(x.personName):'')+(x.personMobile?' ('+esc(x.personMobile)+')':'')+(x.caseNo?' · Case '+esc(x.caseNo):'');return item('<span class="'+(x.type==='Income'?'good':'bad')+'">'+esc(x.type)+'</span> · '+money(x.amount),esc(x.category)+extra+' · '+esc(x.date)+' · '+esc(x.description),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))}).join(''):'<div class="empty">No transactions yet.</div>';
@@ -158,7 +158,7 @@ $('customerForm').onsubmit=e=>{
  const i=db.customers.findIndex(x=>digits(x.mobile)===digits(mobile));if(i<0)db.customers.push(c);else db.customers[i]=c;
  clearForm($('customerForm'),'customerEdit');save();
 };
-$('customerClear').onclick=()=>{clearForm($('customerForm'),'customerEdit');$('customerSearch').value='';render()};
+$('customerClear').onclick=()=>{clearForm($('customerForm'),'customerEdit');render()};
 let activeMoneyMobile='',activeMoneyJob='';
 function updateMoneyCategoryFields(){
  const cat=$('mCategory').value;
@@ -170,11 +170,11 @@ $('mCategory').onchange=updateMoneyCategoryFields;
 $('mPersonMobile').addEventListener('input',e=>{e.target.value=formatMobile(e.target.value)});
 function findMoneyCustomer(){
  const mobile=digits($('mSearchMobile').value);
- if(!validMobile(mobile)){ $('mSearchMessage').textContent='Enter a valid saved 11-digit customer mobile number.';$('mCustomerCard').hidden=true;$('mJobPicker').hidden=true;$('mJobWorkspace').hidden=true;return}
+ if(!validMobile(mobile)){ $('mSearchMessage').textContent='Enter a valid saved 11-digit customer mobile number.';$('mAllTransactionsCard').hidden=true;$('mCustomerCard').hidden=true;$('mJobPicker').hidden=true;$('mJobWorkspace').hidden=true;return}
  const c=db.customers.find(x=>digits(x.mobile)===mobile);
- if(!c){$('mSearchMessage').textContent='No customer found with this mobile number.';$('mCustomerCard').hidden=true;$('mJobPicker').hidden=true;$('mJobWorkspace').hidden=true;return}
+ if(!c){$('mSearchMessage').textContent='No customer found with this mobile number.';$('mAllTransactionsCard').hidden=true;$('mCustomerCard').hidden=true;$('mJobPicker').hidden=true;$('mJobWorkspace').hidden=true;return}
  activeMoneyMobile=mobile;
- $('mSearchMessage').textContent='Customer found. Select one of their job records.';
+ $('mSearchMessage').textContent='Customer found. Select one of their job records.';$('mAllTransactionsCard').hidden=false;
  $('mCustomerCard').hidden=false;
  $('mCustomerCard').innerHTML='<strong>'+esc(c.name)+'</strong><div class="meta">Customer Mobile: '+esc(c.mobile)+'<br>Job Quantity: '+esc(c.qty||'—')+'<br>NID No.: '+esc(c.nid||'—')+'<br>Contact Details: '+esc(c.contactDetails||'—')+'</div>';
  const jobs=db.works.filter(w=>digits(w.id)===mobile);
@@ -311,21 +311,7 @@ $('profileForm').onsubmit=e=>{e.preventDefault();const p={name:$('profileName').
 $('profileClear').onclick=()=>{if(confirm('Clear the personal information form?'))$('profileForm').reset()};
 loadProfile();
 showPage('home');
-function openCustomerSearch(){
- const q=String($('customerSearch').value||'').trim().toLowerCase(),qd=digits(q);
- if(!q){alert('Enter a customer name or mobile number to search.');$('customerSearch').focus();return}
- const matches=db.customers.filter(c=>String(c.name||'').toLowerCase().includes(q)||(qd.length>0&&digits(c.mobile).includes(qd)));
- $('customerSearchResults').innerHTML=matches.length?matches.map(c=>'<div class="customer-result"><strong>'+esc(c.name)+'</strong><div class="meta">Qut.: '+esc(c.qty||'—')+'<br>Cust. Mobile (ID): '+esc(c.mobile)+'<br>NID No.: '+esc(c.nid||'—')+'<br>Password: '+esc(c.password||'—')+'<br>Contact Details: '+esc(c.contactDetails||'—')+'</div><div class="actions">'+act('cedit',digits(c.mobile),'Edit')+'</div></div>').join(''):'<div class="empty">No matching customer found.</div>';
- $('customerForm').hidden=true;$('customerList').parentElement.hidden=true;$('customerCsvBtn').parentElement.hidden=true;
- $('customerSearchPage').hidden=false;$('customerSearchPage').classList.remove('active');void $('customerSearchPage').offsetWidth;$('customerSearchPage').classList.add('active');
-}
-function closeCustomerSearch(){
- $('customerSearchPage').classList.remove('active');$('customerSearchPage').hidden=true;
- $('customerForm').hidden=false;$('customerList').parentElement.hidden=false;$('customerCsvBtn').parentElement.hidden=false;
-}
-$('customerSearchBtn').onclick=openCustomerSearch;
-$('customerSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();openCustomerSearch()}};
-$('customerSearchBack').onclick=closeCustomerSearch;$('moneyFilter').onchange=render;
+$('moneyFilter').onchange=render;
 function applyTheme(dark){document.documentElement.classList.toggle('dark',dark);$('themeBtn').textContent=dark?'☀':'☾';$('themeBtn').setAttribute('aria-label',dark?'Switch to light mode':'Switch to dark mode')}
 applyTheme(localStorage.getItem('iem-dark')==='1');$('themeBtn').onclick=()=>{const dark=!document.documentElement.classList.contains('dark');localStorage.setItem('iem-dark',dark?'1':'0');applyTheme(dark)};
 $('exportBtn').onclick=()=>{const a=document.createElement('a'),blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download='income-expense-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href)};
