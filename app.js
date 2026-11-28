@@ -61,13 +61,20 @@ function updatePaymentFields(){
  const stage=$('wEip').value;
  const count=stage==='2nd Pay'?2:stage==='3rd Pay'?3:stage==='4th Pay'?4:stage==='Final Pay'?5:1;
  const names=['2nd','3rd','4th','Final'];
- if(!$('wExtraPaymentFields').dataset.built){
-  $('wExtraPaymentFields').innerHTML=names.map((name,index)=>'<div class="payment-extra" id="paymentRow'+(index+2)+'"><div class="field"><label>'+name+' Amount</label><input id="wAmount'+(index+2)+'" class="job-money" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"></div></div>').join('');
+ const container=$('wExtraPaymentFields');
+ if(!container.dataset.built){
+  container.innerHTML=names.map((name,index)=>'<div class="payment-extra" id="paymentRow'+(index+2)+'"><div class="field"><label>'+name+' Amount</label><input id="wAmount'+(index+2)+'" class="job-money" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"></div></div>').join('');
   names.forEach((name,index)=>paymentInput('wAmount'+(index+2)));
-  $('wExtraPaymentFields').dataset.built='1';
+  container.dataset.built='1';
  }
- for(let n=2;n<=5;n++)$('paymentRow'+n).hidden=n>count;
- $('wExtraPaymentFields').hidden=count===1;
+ container.hidden=count===1;
+ container.style.display=count===1?'none':'block';
+ for(let n=2;n<=5;n++){
+  const row=$('paymentRow'+n);
+  const visible=n<=count;
+  row.hidden=!visible;
+  row.style.display=visible?'block':'none';
+ }
 }
 function updateJobCategoryFields(){
  const cat=$('wCategory').value;
