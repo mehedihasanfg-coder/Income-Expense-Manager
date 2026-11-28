@@ -186,7 +186,7 @@ $('workForm').onsubmit=e=>{
  const w={paymentSchema:2,id,customer,qty:$('wQty').value,category,mutationApplicationNo:category==='Mutation'?$('wMutationNo').value.trim():'',caseNo:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wCaseNo').value.trim():'',investigationDate:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wInvestigationDate').value:'',rorNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wRorNo').value.trim():'',mousaNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wMousaNo').value.trim():'',description:$('wDescription').value.trim(),contactAmount:amountNumber($('wContactAmount').value),received:$('wReceived').value,eip:$('wEip').value,amount:payments[0],amount2:payments[1],amount3:payments[2],amount4:payments[3],amount5:payments[4],deadline:$('wDeadline').value,handover:$('wHandover').value,totalPayingAmount:total,status:$('wStatus').value,reminder:$('wReminder').checked};
  if(!w.description){alert('Enter Job Description.');return}
  const i=db.works.findIndex(x=>digits(x.id)===id);if(i<0)db.works.push(w);else db.works[i]=w;
- clearForm($('workForm'),'workEdit');$('wReceived').value=today();refreshJobOptions();save();
+ clearForm($('workForm'),'workEdit');$('wReceived').value=today();updateJobCategoryFields();updatePaymentFields();updatePaymentTotal();refreshJobOptions();save();
 };
 $('workClear').onclick=()=>{clearForm($('workForm'),'workEdit');$('wReceived').value=today();$('wReminder').checked=false;updateJobCategoryFields();updatePaymentFields();updatePaymentTotal();refreshJobOptions()};
 document.addEventListener('click',e=>{
