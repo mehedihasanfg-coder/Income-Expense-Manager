@@ -175,11 +175,7 @@ main{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 </div></section>
 <div class="pin-overlay" id="pinOverlay" hidden><div class="pin-dialog" role="dialog" aria-modal="true" aria-labelledby="pinMessage"><div class="pin-lock">♙</div><p id="pinMessage">Unauthorised access denied? Input PIN!</p><input id="personalPin" type="password" autocomplete="off" placeholder="Enter PIN" aria-label="Input PIN"><div class="pin-actions"><button type="button" class="pin-cancel" id="pinCancel">Cancel</button><button type="button" class="pin-unlock" id="pinUnlock">Unlock</button></div><p class="pin-error" id="pinError" hidden>Incorrect PIN. Access denied.</p></div></div>
 <section id="customers" class="panel">
-<div class="card"><h2>Customer Details</h2><div class="field"><label for="customerSearch">Search Customer</label><div class="search-row"><input id="customerSearch" inputmode="search" placeholder="Enter customer mobile ID or name"><button class="btn" type="button" id="customerSearchBtn">Search</button></div></div>
-<div id="customerSearchPage" class="customer-search-page" aria-live="polite" hidden>
- <div class="search-page-head"><button type="button" id="customerSearchBack" class="search-back" aria-label="Back to customer form">‹</button><h3>Search Results</h3></div>
- <div id="customerSearchResults" class="list"></div>
-</div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+<div class="card"><h2>Customer Details</h2>
 <form id="customerForm" novalidate><input type="hidden" id="customerEdit">
 <div class="grid">
 <div class="field"><label>Cust. Mobile (ID)</label><input id="cMobile" inputmode="numeric" autocomplete="tel" required maxlength="12" placeholder="01710-020101"></div>
@@ -215,7 +211,7 @@ main{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 <div class="field full"><label>Description</label><textarea id="mDescription" placeholder="Expense details"></textarea></div>
 </div><div class="actions"><button class="btn" type="submit">Save Expense</button><button class="btn secondary" type="button" id="moneyClear">Clear</button></div></form></div>
 </div>
-<div class="card"><div class="toolbar"><h2>All Transactions</h2><select id="moneyFilter" style="max-width:130px"><option value="All">All</option><option>Income</option><option>Expense</option></select></div><div id="moneyList" class="list"></div><div class="actions"><button class="btn secondary" type="button" id="moneyCsvBtn">Download Income &amp; Expense.csv</button></div></div>
+<div class="card" id="mAllTransactionsCard" hidden><div class="toolbar"><h2>All Transactions</h2><select id="moneyFilter" style="max-width:130px"><option value="All">All</option><option>Income</option><option>Expense</option></select></div><div id="moneyList" class="list"></div><div class="actions"><button class="btn secondary" type="button" id="moneyCsvBtn">Download Income &amp; Expense.csv</button></div></div>
 </section>
 <section id="work" class="panel">
 <div class="card"><h2>Job Record</h2><form id="workForm"><input type="hidden" id="workEdit"><div class="grid">
