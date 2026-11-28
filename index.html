@@ -192,15 +192,30 @@ main{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 <div class="card"><h2>Saved Customers</h2><div id="customerList" class="list"></div></div>
 </section>
 <section id="money" class="panel">
-<div class="card"><h2>Add income or expense</h2><form id="moneyForm"><input type="hidden" id="moneyEdit"><div class="grid">
-<div class="field"><label>Type</label><select id="mType"><option>Income</option><option>Expense</option></select></div><div class="field"><label>Category</label><select id="mCategory" required><option value="">Select</option><option>Mutation</option><option>M.P. Case</option><option>150 Dhara Case</option><option>S.F. Files</option><option>Khatian</option><option>Dhokila/ ldtax</option><option>Journalist Pay</option><option>Loan</option><option>Office</option><option>Others</option></select></div>
-<div class="field full" id="mCustomerFields" hidden><div class="grid"><div class="field"><label>Cust. Mobile</label><input id="mCustomerMobile" inputmode="numeric" maxlength="12" placeholder="01710-020101"></div><div class="field"><label>Person Name</label><input id="mPersonName" placeholder="Enter person name"></div></div></div>
-<div class="field full" id="mCaseFields" hidden><div class="grid"><div class="field"><label>Case No.</label><input id="mCaseNo" placeholder="Enter case number"></div><div class="field"><label>Investigation Date</label><input id="mInvestigationDate" type="date"></div></div></div>
-<div class="field"><label>Amount (৳)</label><input id="mAmount" type="number" min=".01" step=".01" required></div>
+<div class="card"><h2>Customer &amp; Job Search</h2>
+<div class="field"><label for="mSearchMobile">Search Mobile</label><div class="search-row"><input id="mSearchMobile" inputmode="numeric" maxlength="12" placeholder="Enter customer mobile number"><button class="btn" type="button" id="mSearchBtn">Search</button></div></div>
+<div id="mSearchMessage" class="note" style="margin-top:9px" aria-live="polite">Search a saved customer mobile number to view their information and jobs.</div>
+<div id="mCustomerCard" class="customer-result" hidden></div>
+<div id="mJobPicker" class="field" style="margin-top:12px" hidden><label for="mJobSelect">Select Job Record</label><select id="mJobSelect"><option value="">Select Job</option></select></div>
+</div>
+<div id="mJobWorkspace" hidden>
+<div class="card"><h2>Selected Job Information</h2><div id="mJobDetails" class="customer-result"></div></div>
+<div class="card"><h2>Job Income</h2><div id="mIncomeDetails" class="customer-result"></div></div>
+<div class="card"><h2>Job Expenses</h2><div id="mJobExpenseList" class="list"></div></div>
+<div class="card" id="mExpenseCard"><h2>Add Job Expense</h2>
+<form id="moneyForm"><input type="hidden" id="moneyEdit"><div class="grid">
+<div class="field full"><label>Category</label><select id="mCategory" required><option value="">Select</option><option>Mutation</option><option>Section (144/145)</option><option>Section (150)</option><option>S.F Files</option><option>CP (ROR)</option><option>Draft (ROR)</option><option>Search (ROR)</option><option>Corr. (ROR)</option><option>NID/Number Rpls.</option><option>Others</option></select></div>
+<div class="field full" id="mMutationFields" hidden><div class="grid"><div class="field"><label>Mut. Appl. No.</label><input id="mMutationNo" type="text"></div><div class="field"><label>Total Job Income</label><input id="mMutationIncome" type="text" readonly></div></div></div>
+<div class="field full" id="mSectionFields" hidden><div class="grid"><div class="field"><label>Case No.</label><input id="mCaseNo" type="text"></div><div class="field"><label>Investigation Date</label><input id="mInvestigationDate" type="date"></div></div></div>
+<div class="field full" id="mRorFields" hidden><div class="grid"><div class="field"><label>(ROR) No.</label><input id="mRorNo" type="text"></div><div class="field"><label>Mousa No.</label><input id="mMousaNo" type="text"></div></div></div>
+<div class="field"><label>Person Name (Payment Recipient)</label><input id="mPersonName" required placeholder="Enter recipient name"></div>
+<div class="field"><label>Person Mobile</label><input id="mPersonMobile" required inputmode="numeric" maxlength="12" placeholder="01XXXXXXXXX"></div>
+<div class="field"><label>Expense Amount (৳)</label><input id="mAmount" type="number" min=".01" step=".01" required></div>
 <div class="field"><label>Date</label><input id="mDate" type="date" required></div>
-<div class="field full"><label>Description</label><textarea id="mDescription" placeholder="Optional details"></textarea></div>
-</div><div class="actions"><button class="btn" type="submit">Save record</button><button class="btn secondary" type="button" id="moneyClear">Clear</button></div></form><div class="actions"><button class="btn secondary" type="button" id="moneyCsvBtn">Download Income &amp; Expense.csv</button></div></div>
-<div class="card"><div class="toolbar"><h2>Transactions</h2><select id="moneyFilter" style="max-width:130px"><option value="All">All</option><option>Income</option><option>Expense</option></select></div><div id="moneyList" class="list"></div></div>
+<div class="field full"><label>Description</label><textarea id="mDescription" placeholder="Expense details"></textarea></div>
+</div><div class="actions"><button class="btn" type="submit">Save Expense</button><button class="btn secondary" type="button" id="moneyClear">Clear</button></div></form></div>
+</div>
+<div class="card"><div class="toolbar"><h2>All Transactions</h2><select id="moneyFilter" style="max-width:130px"><option value="All">All</option><option>Income</option><option>Expense</option></select></div><div id="moneyList" class="list"></div><div class="actions"><button class="btn secondary" type="button" id="moneyCsvBtn">Download Income &amp; Expense.csv</button></div></div>
 </section>
 <section id="work" class="panel">
 <div class="card"><h2>Job Record</h2><form id="workForm"><input type="hidden" id="workEdit"><div class="grid">
