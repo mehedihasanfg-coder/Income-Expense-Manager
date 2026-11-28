@@ -1,7 +1,7 @@
 (()=>{
 const $=id=>document.getElementById(id);
 const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
-const num=v=>Math.max(0,Number(v)||0),money=v=>'৳'+Number(v||0).toLocaleString('en-BD',{maximumFractionDigits:2}),uid=p=>p+'-'+Date.now().toString(36).toUpperCase();
+let uidCounter=0;const num=v=>Math.max(0,Number(v)||0),money=v=>'৳'+Number(v||0).toLocaleString('en-BD',{maximumFractionDigits:2}),uid=p=>p+'-'+Date.now().toString(36).toUpperCase()+'-'+(++uidCounter);
 const digits=v=>String(v||'').replace(/\D/g,'').slice(0,11);
 const formatMobile=v=>{let d=digits(v);return d.length>5?d.slice(0,5)+'-'+d.slice(5):d};
 const validMobile=v=>/^01\d{9}$/.test(digits(v));
