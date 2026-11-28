@@ -133,7 +133,7 @@ function render(){
  const rem=reminders();
  const cs=db.customers;
  $('customerList').innerHTML=cs.length?cs.map(c=>item(esc(c.name)+' · '+esc(c.mobile),'Qut.: '+esc(c.qty||'—'),act('cedit',digits(c.mobile),'Edit')+act('cdel',digits(c.mobile),'Delete','danger'))).join(''):'<div class="empty">No customer records yet.</div>';
- const mf=$('moneyFilter').value,ms=db.money.filter(x=>mf==='All'||x.type===mf).slice().reverse();
+ const mf=$('moneyFilter').value,ms=db.money.filter(x=>(mf==='All'||x.type===mf)&&(!activeMoneyMobile||digits(x.customerMobile)===activeMoneyMobile)).slice().reverse();
  $('moneyList').innerHTML=ms.length?ms.map(x=>{const extra=(x.jobRecordNo?' · Job '+esc(x.jobRecordNo):'')+(x.customerMobile?' · '+esc(x.customerMobile):'')+(x.personName?' · '+esc(x.personName):'')+(x.personMobile?' ('+esc(x.personMobile)+')':'')+(x.caseNo?' · Case '+esc(x.caseNo):'');return item('<span class="'+(x.type==='Income'?'good':'bad')+'">'+esc(x.type)+'</span> · '+money(x.amount),esc(x.category)+extra+' · '+esc(x.date)+' · '+esc(x.description),act('medit',x.id,'Edit')+act('mdel',x.id,'Delete','danger'))}).join(''):'<div class="empty">No transactions yet.</div>';
  $('workList').innerHTML=db.works.slice().reverse().map(w=>item(esc(w.recordNo)+' · '+esc(formatMobile(w.id))+' · '+esc(w.customer),'Job: '+esc(w.description)+' · Deadline '+esc(w.deadline)+' · Handover '+esc(w.handover||'—')+' · <b>'+esc(status(w))+'</b>',act('wedit',w.recordNo,'Edit')+act('wdel',w.recordNo,'Delete','danger'))).join('')||'<div class="empty">No job records yet.</div>';
  const selectedReminders=db.works.filter(w=>w.reminder===true).slice().sort((a,b)=>String(a.deadline||'').localeCompare(String(b.deadline||'')));
@@ -169,6 +169,7 @@ function updateMoneyCategoryFields(){
 $('mCategory').onchange=updateMoneyCategoryFields;
 $('mPersonMobile').addEventListener('input',e=>{e.target.value=formatMobile(e.target.value)});
 function findMoneyCustomer(){
+ activeMoneyMobile='';activeMoneyJob='';
  const mobile=digits($('mSearchMobile').value);
  if(!validMobile(mobile)){ $('mSearchMessage').textContent='Enter a valid saved 11-digit customer mobile number.';$('mAllTransactionsCard').hidden=true;$('mCustomerCard').hidden=true;$('mJobPicker').hidden=true;$('mJobWorkspace').hidden=true;return}
  const c=db.customers.find(x=>digits(x.mobile)===mobile);
