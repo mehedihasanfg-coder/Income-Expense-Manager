@@ -222,6 +222,7 @@ $('wId').onchange=()=>{
  const c=db.customers.find(x=>digits(x.mobile)===digits($('wId').value));
  if(!c){$('wCustomer').value='';$('wQty').value='';$('customerRequiredModal').hidden=false;return}
  $('wCustomer').value=c.name||'';$('wQty').value=c.qty||'';
+ if(!$('workEdit').value)$('wRecordNo').value=$('wId').value?uid('JOB'):'';
 };
 $('customerRequiredOk').onclick=()=>{$('customerRequiredModal').hidden=true;showPage('customers')};
 $('workForm').onsubmit=e=>{
@@ -230,7 +231,7 @@ $('workForm').onsubmit=e=>{
  const payments=[1,2,3,4,5].map(n=>amountNumber($(n===1?'wAmount':'wAmount'+n).value));
  const total=payments.reduce((sum,v)=>sum+(Number(v)||0),0);
  const category=$('wCategory').value;
- const w={recordNo:$('workEdit').value||uid('JOB'),paymentSchema:2,id,customer,qty:$('wQty').value,category,mutationApplicationNo:category==='Mutation'?$('wMutationNo').value.trim():'',caseNo:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wCaseNo').value.trim():'',investigationDate:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wInvestigationDate').value:'',rorNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wRorNo').value.trim():'',mousaNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wMousaNo').value.trim():'',description:$('wDescription').value.trim(),contactAmount:amountNumber($('wContactAmount').value),received:$('wReceived').value,eip:$('wEip').value,amount:payments[0],amount2:payments[1],amount3:payments[2],amount4:payments[3],amount5:payments[4],deadline:$('wDeadline').value,handover:$('wHandover').value,totalPayingAmount:total,status:$('wStatus').value,reminder:$('wReminder').checked};
+ const w={recordNo:$('workEdit').value||$('wRecordNo').value||uid('JOB'),paymentSchema:2,id,customer,qty:$('wQty').value,category,mutationApplicationNo:category==='Mutation'?$('wMutationNo').value.trim():'',caseNo:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wCaseNo').value.trim():'',investigationDate:['Section (144/145)','Section (150)','S.F Files'].includes(category)?$('wInvestigationDate').value:'',rorNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wRorNo').value.trim():'',mousaNo:['CP (ROR)','Draft (ROR)','Search (ROR)','Corr. (ROR)'].includes(category)?$('wMousaNo').value.trim():'',description:$('wDescription').value.trim(),contactAmount:amountNumber($('wContactAmount').value),received:$('wReceived').value,eip:$('wEip').value,amount:payments[0],amount2:payments[1],amount3:payments[2],amount4:payments[3],amount5:payments[4],deadline:$('wDeadline').value,handover:$('wHandover').value,totalPayingAmount:total,status:$('wStatus').value,reminder:$('wReminder').checked};
  if(!w.description){alert('Enter Job Description.');return}
  $('wRecordNo').value=w.recordNo;
  const i=db.works.findIndex(x=>x.recordNo===w.recordNo);if(i<0)db.works.push(w);else db.works[i]=w;
